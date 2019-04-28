@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     printf("%s\n", result);
 
     UcMemArena arena;
-    int* number = arena.amalloc<int>();
+    int* number = arena.amalloc<int>(1);
 
     *number = 200;
     printf("%d\n", *number);

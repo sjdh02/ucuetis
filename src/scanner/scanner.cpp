@@ -27,6 +27,13 @@ Token Tokenizer::get_next() {
     case ':':
 	return parse_single();
 
+    case '"':	    
+	// skip over opening quote
+	++m_pos;
+	return parse_str();
+	// skip over closing quote
+	++m_pos;
+
     case '=':
     case '>':
     case '<':
@@ -58,6 +65,53 @@ Token Tokenizer::get_next() {
 	    ++m_pos;
 	    return get_next();
     }
+}
+
+Token Tokenizer::parse_num() {
+    Token token;
+    token.active = Token::Active::NumLit;
+    size_t start = m_pos;
+    int len = 0;
+    char* buffer;
+
+    while (m_pos < m_len && is_digit(m_data[m_pos])) {
+	++len;
+    }
+
+    m_column += len;
+    m_pos += len;
+
+    // NOTE(sam): Since this buffer is very short lived, we just directly
+    // call malloc rather than using the arena allocator. 
+    buffer = static_cast<char*>(malloc(sizeof(char) * len + 1));
+    buffer[len] = '\0';
+    strncpy(buffer, m_data + start, len);
+
+    token.data.num = static_cast<uint64_t>(strtoul(buffer, nullptr, 10));
+    return token;
+}
+
+Token Tokenizer::parse_str() {
+    Token token;
+    token.active = Token::Active::StrLit;
+    size_t start = m_pos;
+    int len = 0;
+    char* buffer;
+    
+    while (m_pos < m_len && m_data[m_pos] != '"') {
+	++len;
+    }
+
+    m_column += len;
+    m_pos += len;
+    
+    buffer = m_allocator->amalloc<char>(len + 1);
+    buffer[len] = '\0';
+
+    strncpy(buffer, m_data + start, len);
+
+    token.data.str = buffer;
+    return token;
 }
 
 Token Tokenizer::parse_multi() {

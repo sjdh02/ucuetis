@@ -12,7 +12,7 @@ public:
     UcMemArena();
     
     template <typename T>
-    T* amalloc() {
+    T* amalloc(size_t nmeb) {
 	if (m_memory == nullptr) {
 	    m_memory = static_cast<unsigned char*>(malloc(sizeof(char) * 8196));
 	    assert(m_memory != nullptr);
@@ -20,7 +20,7 @@ public:
 	}
 
 	auto memory = m_memory + m_pos;
-	m_pos += sizeof(T);
+	m_pos += sizeof(T) * nmeb;
 	while ((m_pos & 7) != 0)
 	    ++m_pos;
 
