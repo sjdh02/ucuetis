@@ -3,7 +3,7 @@
 Token Tokenizer::get_next() {
     if (m_pos >= m_len) {
 	Token token;
-	token.active = Active::Symbol;
+	token.active = Token::Active::Symbol;
 	token.data.symbol = Symbol::EOS;
 	
 	return token;
@@ -57,6 +57,97 @@ Token Tokenizer::get_next() {
 	    printf("(tokenizer) warning: unrecognized character %c\n", m_data[m_pos]);
 	    ++m_pos;
 	    return get_next();
+    }
+}
+
+Token Tokenizer::parse_multi() {
+    if ((m_pos + 1) >= m_len) {
+	return parse_single();
+    }
+    
+    Token token;
+    token.active = Token::Active::Symbol;
+    char next = m_data[m_pos + 1];
+    
+    switch (m_data[m_pos]) {
+    case '!':
+	if (next == '=')
+	    token.data.symbol = Symbol::Neq;
+	else
+	    token.data.symbol = Symbol::Bang;
+	break;
+    case '<':
+	if (next == '>')
+	    token.data.symbol = Symbol::Pipe;
+	else if (next =='=')
+	    token.data.symbol = Symbol::LtOrEq;
+	else
+	    token.data.symbol = Symbol::Lt;
+	break;
+    case '>':
+	if (next == '=')
+	    token.data.symbol = Symbol::GtOrEq;
+	else
+	    token.data.symbol = Symbol::Gt;
+	break;
+    case '=':
+	if (next == '>')
+	    token.data.symbol = Symbol::RType;
+	else
+	    token.data.symbol = Symbol::Eq;
+	break;
+    default: assert(false); // unreachable
+    }
+
+    switch (token.data.symbol) {
+    case Symbol::Eq:
+    case Symbol::Gt:
+    case Symbol::Lt:
+    case Symbol::Bang:
+	++m_pos;
+	++m_column;
+	break;
+    default:
+	m_pos += 2;
+	m_column += 2;
+	break;
+    }
+
+    return token;
+}
+
+Token Tokenizer::parse_single() {
+    Token token;
+    token.active = Token::Active::Symbol;
+
+    switch (m_data[m_pos]) {
+    case '(': token.data.symbol = Symbol::LParen; break;
+    case ')': token.data.symbol = Symbol::RParen; break;
+    case '[': token.data.symbol = Symbol::LBracket; break;
+    case ']': token.data.symbol = Symbol::RBracket; break;
+    case '{': token.data.symbol = Symbol::LBrace; break;
+    case '}': token.data.symbol = Symbol::LBrace; break;
+    case '+': token.data.symbol = Symbol::Plus; break;
+    case '-': token.data.symbol = Symbol::Minus; break;
+    case '*': token.data.symbol = Symbol::Mul; break;
+    case '/': token.data.symbol = Symbol::Div; break;
+    case ';': token.data.symbol = Symbol::Semicolon; break;
+    case '|': token.data.symbol = Symbol::Bar; break;
+    case ':': token.data.symbol = Symbol::Colon; break;
+    case ',': token.data.symbol = Symbol::Comma; break;
+    case '.': token.data.symbol = Symbol::Dot; break;
+    default: assert(false); // unreachable
+    }
+
+    ++m_pos;
+    return token;
+}
+
+void Tokenizer::skip_whitespace() {
+    while (m_pos < m_len && m_data[m_pos] != '\n') {
+	++m_pos;
+	++m_column;
+	++m_last_len;
     }
 }
 

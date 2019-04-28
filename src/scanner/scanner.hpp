@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+#include <cassert>
 
 enum class Symbol {
     // scoping characters
@@ -38,14 +39,8 @@ enum class Symbol {
     EOS,
 };
 
-enum class Active {
-    Symbol,
-    NumLit,
-    StrLit,
-    Ident,
-};
-
 struct Token {
+    enum class Active { Symbol, NumLit, StrLit, Ident };
     Active active;
     union {
 	Symbol symbol;
@@ -61,7 +56,7 @@ class Tokenizer {
     size_t m_pos;
     int m_line;
     int m_column;
-    int m_last_len; // NOTE(sam): When we skip whitespace, we will need to add that space to last_len (ADD IT!!! NOT SET IT!!!)
+    int m_last_len;
 
     Token parse_ident();
     Token parse_num();
