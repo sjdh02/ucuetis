@@ -8,7 +8,7 @@
 
 #include "../mem/arena.hpp"
 
-enum class Symbol {
+enum class Lexeme {
     // scoping characters
     LParen, RParen,
     LBracket, RBracket,
@@ -43,10 +43,10 @@ enum class Symbol {
 };
 
 struct Token {
-    enum class Active { Symbol, NumLit, StrLit, Ident };
+    enum class Active { Lexeme, NumLit, StrLit, Ident };
     Active active;
     union {
-	Symbol symbol;
+	Lexeme lexeme;
 	uint64_t num;
 	char* str;
 	char* ident;
