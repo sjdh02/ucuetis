@@ -1,5 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
+#include <cassert>
+#include <cstring>
 
 #include "file/file.hpp"
 #include "mem/arena.hpp"
@@ -15,11 +17,15 @@ int main(int argc, char** argv) {
     printf("%s\n", result);
 
     UcMemArena arena;
-    int* number = arena.amalloc<int>(1);
+    Tokenizer tokenizer("(defn x 200)", &arena);
 
-    *number = 200;
-    printf("%d\n", *number);
-
+    assert(tokenizer.get_next().data.lexeme == Lexeme::LParen);
+    assert(tokenizer.get_next().data.lexeme == Lexeme::Assign);
+    assert(strcmp(tokenizer.get_next().data.ident, "x") == 0);
+    assert(tokenizer.get_next().data.num == 200);
+    assert(tokenizer.get_next().data.lexeme == Lexeme::RParen);
+    assert(tokenizer.get_next().data.lexeme == Lexeme::EOS);
+    
     free(result);    
     return 0;
 }

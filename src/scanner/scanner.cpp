@@ -86,7 +86,7 @@ Token Tokenizer::parse_ident() {
 	++m_pos;
     }
 
-    buffer = static_cast<char*>(malloc(sizeof(char) * (len + 1)));
+    buffer = m_allocator->amalloc<char>(len + 1);
     buffer[len] = '\0';
     strncpy(buffer, m_data + start, len);
 
@@ -147,6 +147,7 @@ Token Tokenizer::parse_num() {
 
     token.data.num = static_cast<uint64_t>(strtoul(buffer, nullptr, 10));
     m_last_len = len;
+    free(buffer);
     return token;
 }
 
@@ -288,6 +289,6 @@ bool is_digit(char c) {
 }
 
 bool is_alpha(char c) {
-    return ((c >= 65 && c <= 90) || (c >= 97 && c <= 112) || c == '_');
+    return ((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == '_');
 }
 
