@@ -31,7 +31,7 @@ char* read_file(char* path) {
 }
 #elif __unix
 char* read_file(char* path) {
-    FILE *fp;
+    FILE* fp;
     size_t size;
     char* buffer;
 
@@ -42,9 +42,12 @@ char* read_file(char* path) {
     size = ftell(fp);
     rewind(fp);
 
-    buffer = malloc(sizeof(char) * (size + 1));
-    assert(fread(&buffer, sizeof(char), size, fp) == size);
+    buffer = static_cast<char*>(malloc(sizeof(char) * (size + 1)));
+    assert(fread(buffer, sizeof(char), size, fp) == size);
     assert(fclose(fp) == 0);
+
+    buffer[size] = '\0';
+    
     return buffer;
 }
 #endif
