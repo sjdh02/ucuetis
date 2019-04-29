@@ -25,8 +25,9 @@ public:
     unsigned char* m_memory;
     size_t m_pos;
     size_t m_allocated;
-    BMeta* block_meta;
-    BMeta* find_free_block(size_t nmeb);
+    BMeta* m_block_meta;
+    BMeta* find_free_block(size_t data_size);
+    void insert_new_block(BMeta* block);
 public:
     UcMemArena();
     
@@ -41,32 +42,31 @@ public:
 	    assert(m_memory != nullptr);
 	    m_allocated = 16392;
 	}
-	
-	auto memory = m_memory + m_pos;
-	m_pos += sizeof(BMeta) + (sizeof(T) * nmeb);
-	while ((m_pos & 7) != 0)
-	    ++m_pos;
-	
-	if (m_pos >= m_allocated) {
-	    m_memory = static_cast<unsigned char*>(realloc(m_memory, sizeof(char) * (m_allocated * 2)));
-	    assert(m_memory != nullptr);
-	    m_allocated *= 2;
-	}
 
-	BMeta* block = reinterpret_cast<BMeta*>(memory);
-	block->data_size = sizeof(T);
+	unsigned char* memory;
+	BMeta* block = find_free_block(sizeof(T));
 
-	if (block_meta == nullptr) {
-	    block_meta = block;
-	} else {
-	    BMeta* tail = block_meta;	    
-	    while (tail->next != nullptr) {
-		tail = tail->next;
+	if (block != nullptr) {
+	    block->free = 0;
+	    memory = reinterpret_cast<unsigned char*>(block + sizeof(BMeta));
+	} else {	
+	    memory = m_memory + m_pos;
+	    m_pos += sizeof(BMeta) + (sizeof(T) * nmeb);
+	    while ((m_pos & 7) != 0)
+		++m_pos;
+	    
+	    if (m_pos >= m_allocated) {
+		m_memory = static_cast<unsigned char*>(realloc(m_memory, sizeof(char) * (m_allocated * 2)));
+		assert(m_memory != nullptr);
+		m_allocated *= 2;
 	    }
-	    tail->next = block;
+	    
+	    block = reinterpret_cast<BMeta*>(memory);
+	    block->data_size = sizeof(T);
+	    insert_new_block(block);
 	}
 	
-	return reinterpret_cast<T>(memory + sizeof(BMeta));
+	return reinterpret_cast<T>(memory + sizeof(BMeta));	
     };
 
     template <typename T>

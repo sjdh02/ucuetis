@@ -88,7 +88,6 @@ Token Tokenizer::parse_ident() {
 
     buffer = m_allocator->amalloc<char*>(len + 1);
     buffer[len] = '\0';
-    m_allocator->afree(buffer);
     strncpy(buffer, m_data + start, len);
 
     for (size_t i = 0; i < 18; ++i) {
