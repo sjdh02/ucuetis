@@ -64,14 +64,22 @@ public:
 	return reinterpret_cast<T>(memory + sizeof(BMeta));	
     };
 
-    void afree(void* ptr) {
+    template <typename T>
+    T acalloc(size_t nmeb) {
+	auto memory = amalloc<T>(nmeb);
+	memset(memory, 0, sizeof(T) * nmeb);
+	return memory;
+    }
+
+    template <typename T>
+    void afree(T* ptr) {
 	if (ptr == nullptr) {
 	    return;
 	}
 
 	// NOTE(sam): A BMeta struct is inserted right before the requested memory, so the ptr minus the size of
 	// a BMeta struct will get the start of the BMeta struct.
-	BMeta* current = reinterpret_cast<BMeta*>(static_cast<unsigned char*>(ptr) - sizeof(BMeta));
+	BMeta* current = reinterpret_cast<BMeta*>(reinterpret_cast<unsigned char*>(ptr) - sizeof(BMeta));
 	assert(current->magic == 0x77);
 	current->free = 1;
     };
