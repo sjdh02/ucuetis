@@ -6,6 +6,7 @@
 #include "file/file.hpp"
 #include "mem/arena.hpp"
 #include "scanner/scanner.hpp"
+//#include "parser/parser.hpp"
 
 int main(int argc, char** argv) {
     if (argc < 2) {

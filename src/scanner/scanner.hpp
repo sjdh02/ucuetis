@@ -72,8 +72,9 @@ public:
     Tokenizer(const char* p_data, UcMemArena* p_allocator) : m_data(p_data), m_allocator(p_allocator), m_len(strlen(p_data)),
 							     m_pos(0), m_line(1), m_column(0), m_last_len(0) {};
     Token get_next();
-    Token peek_next();
     Token get_current();
+    Token peek_token();
+    void step_back();
     ~Tokenizer() = default;
 };
 

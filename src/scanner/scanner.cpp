@@ -86,8 +86,9 @@ Token Tokenizer::parse_ident() {
 	++m_pos;
     }
 
-    buffer = m_allocator->amalloc<char>(len + 1);
+    buffer = m_allocator->amalloc<char*>(len + 1);
     buffer[len] = '\0';
+    m_allocator->afree(buffer);
     strncpy(buffer, m_data + start, len);
 
     for (size_t i = 0; i < 18; ++i) {
@@ -165,7 +166,7 @@ Token Tokenizer::parse_str() {
 
     m_column += len;
     
-    buffer = m_allocator->amalloc<char>(len + 1);
+    buffer = m_allocator->amalloc<char*>(len + 1);
     buffer[len] = '\0';
 
     strncpy(buffer, m_data + start, len);
@@ -267,6 +268,21 @@ void Tokenizer::skip_whitespace() {
 	++m_column;
 	++m_last_len;
     }
+}
+
+void Tokenizer::step_back() {
+    m_pos -= m_last_len;
+}
+
+Token Tokenizer::get_current() {
+    step_back();
+    return get_next();
+}
+
+Token Tokenizer::peek_token() {
+    auto token = get_next();
+    step_back();
+    return token;
 }
 
 bool is_delim(char c) {
