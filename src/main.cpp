@@ -15,10 +15,8 @@ int main(int argc, char** argv) {
     }
     
     auto result = read_file(argv[1]);
-    printf("%s\n", result);
 
     UcMemArena arena;
-    /*
     Tokenizer tokenizer("(defn x 200)", &arena);
 
     assert(tokenizer.get_next().data.lexeme == Lexeme::LParen);
@@ -27,14 +25,6 @@ int main(int argc, char** argv) {
     assert(tokenizer.get_next().data.num == 200);
     assert(tokenizer.get_next().data.lexeme == Lexeme::RParen);
     assert(tokenizer.get_next().data.lexeme == Lexeme::EOS);
-    */
-    
-    size_t* number = arena.amalloc<size_t*>(1);
-    *number = 300;
-    arena.afree(number);
-    number = arena.amalloc<size_t*>(1);
-
-    printf("%zu\n", *number);
     
     free(result);    
     return 0;

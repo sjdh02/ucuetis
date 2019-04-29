@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cassert>
-#include <cstdio>
-
 
 struct BMeta {
     BMeta* next;
@@ -73,7 +71,7 @@ public:
 
 	// NOTE(sam): A BMeta struct is inserted right before the requested memory, so the ptr minus the size of
 	// a BMeta struct will get the start of the BMeta struct.
-	BMeta* current = reinterpret_cast<BMeta*>(reinterpret_cast<unsigned char*>(ptr) - sizeof(BMeta));
+	BMeta* current = reinterpret_cast<BMeta*>(static_cast<unsigned char*>(ptr) - sizeof(BMeta));
 	assert(current->magic == 0x77);
 	current->free = 1;
     };
