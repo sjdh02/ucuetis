@@ -93,6 +93,7 @@ Token Tokenizer::parse_ident() {
     for (size_t i = 0; i < 18; ++i) {
 	if (strcmp(buffer, RESERVED[i]) == 0) {
 	    matched = true;
+	    m_allocator->afree(buffer);
 	    token.active = Token::Active::Lexeme;
 	    switch (i) {
 	    case 0: token.data.lexeme = Lexeme::Fn; break;
@@ -139,15 +140,13 @@ Token Tokenizer::parse_num() {
 
     m_column += len;
 
-    // NOTE(sam): Since this buffer is very short lived, we just directly
-    // call malloc rather than using the arena allocator. 
-    buffer = static_cast<char*>(malloc(sizeof(char) * (len + 1)));
+    buffer = m_allocator->amalloc<char*>(len + 1);
     buffer[len] = '\0';
     strncpy(buffer, m_data + start, len);
 
     token.data.num = static_cast<uint64_t>(strtoul(buffer, nullptr, 10));
     m_last_len = len;
-    free(buffer);
+    m_allocator->afree(buffer);
     return token;
 }
 

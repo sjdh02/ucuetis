@@ -4,24 +4,14 @@
 #include <cstdint>
 #include <cassert>
 
-#ifdef _WIN64
-#pragma pack(push, 1)
 struct BMeta {
-    BMeta* next = nullptr;
+    BMeta* next;
     size_t data_size;
-    int free = 0;
+    int free;
+    int magic;
 };
-#pragma pack(pop)
-#elif __unix
-struct __attribute__ ((packed)) BMeta {
-    BMeta* next = nullptr;
-    size_t data_size;
-    int free = 0;
-};
-#endif
 
 class UcMemArena {
-public:
     unsigned char* m_memory;
     size_t m_pos;
     size_t m_allocated;
@@ -48,8 +38,9 @@ public:
 
 	if (block != nullptr) {
 	    block->free = 0;
-	    memory = reinterpret_cast<unsigned char*>(block + sizeof(BMeta));
-	} else {	
+	    // NOTE(sam): Since we add the size of a BMeta when returning, we only reinterp the block pointer here.
+	    memory = reinterpret_cast<unsigned char*>(block);
+	} else {
 	    memory = m_memory + m_pos;
 	    m_pos += sizeof(BMeta) + (sizeof(T) * nmeb);
 	    while ((m_pos & 7) != 0)
@@ -62,22 +53,26 @@ public:
 	    }
 	    
 	    block = reinterpret_cast<BMeta*>(memory);
+	    block->next = nullptr;
 	    block->data_size = sizeof(T);
+	    block->free = 0;
+	    block->magic = 0x77;
+	    
 	    insert_new_block(block);
 	}
 	
 	return reinterpret_cast<T>(memory + sizeof(BMeta));	
     };
 
-    template <typename T>
-    void afree(T* ptr) {
+    void afree(void* ptr) {
 	if (ptr == nullptr) {
 	    return;
 	}
-	
-	// A BMeta block is inserted right before the memory, so the ptr minus the size of
+
+	// NOTE(sam): A BMeta struct is inserted right before the requested memory, so the ptr minus the size of
 	// a BMeta struct will get the start of the BMeta struct.
-	BMeta* current = reinterpret_cast<BMeta*>(ptr - sizeof(BMeta));
+	BMeta* current = reinterpret_cast<BMeta*>(static_cast<unsigned char*>(ptr) - sizeof(BMeta));
+	assert(current->magic == 0x77);
 	current->free = 1;
     };
     ~UcMemArena();

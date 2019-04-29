@@ -15,7 +15,6 @@ int main(int argc, char** argv) {
     }
     
     auto result = read_file(argv[1]);
-    printf("%s\n", result);
 
     UcMemArena arena;
     Tokenizer tokenizer("(defn x 200)", &arena);
