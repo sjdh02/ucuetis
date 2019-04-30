@@ -243,7 +243,7 @@ Token Tokenizer::parse_single() {
     case '[': token.data.Lexeme = Lexeme::LBracket; break;
     case ']': token.data.Lexeme = Lexeme::RBracket; break;
     case '{': token.data.Lexeme = Lexeme::LBrace; break;
-    case '}': token.data.Lexeme = Lexeme::LBrace; break;
+    case '}': token.data.Lexeme = Lexeme::RBrace; break;
     case '+': token.data.Lexeme = Lexeme::Plus; break;
     case '-': token.data.Lexeme = Lexeme::Minus; break;
     case '*': token.data.Lexeme = Lexeme::Mul; break;
@@ -281,6 +281,10 @@ Token Tokenizer::peek_token() {
     auto token = get_next();
     step_back();
     return token;
+}
+
+void Tokenizer::skip_token() {
+    get_next();
 }
 
 bool is_delim(char c) {

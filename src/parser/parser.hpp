@@ -54,7 +54,7 @@ struct UcExpr {
 	 */
 	struct {
 	    UcExpr* next;
-	    UcExpr* data;
+	    UcExpr* value;
 	} List;
 
 	/*

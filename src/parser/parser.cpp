@@ -28,6 +28,24 @@ UcExpr* Parser::get_expr() {
 	    expr->data.Math.lhs = extract_val();
 	    expr->data.Math.rhs = extract_val();
 	    break;
+
+
+	case Lexeme::Lt:
+	case Lexeme::Gt:
+	case Lexeme::Eq:
+	case Lexeme::Neq:
+	case Lexeme::LtOrEq:
+	case Lexeme::GtOrEq:
+	    expr->active = UcExpr::Active::Boolean;
+	    expr->data.Boolean.op = token.data.Lexeme;
+	    expr->data.Boolean.lhs = extract_val();
+	    expr->data.Boolean.rhs = extract_val();
+	    break;
+
+	case Lexeme::Yield:
+	    expr->active = UcExpr::Active::Yield;
+	    expr->data.Yield = extract_val();
+	    break;
 	    
 	case Lexeme::EOS:
 	    return nullptr;
@@ -35,9 +53,11 @@ UcExpr* Parser::get_expr() {
 	}
 	
 	break;
+	
     case Token::Active::NumLit:
     case Token::Active::StrLit:
     case Token::Active::Ident:
+	// This should print an error instead of being marked as unreachable.
     default: assert(false); // unreachable
     }
 
@@ -70,8 +90,55 @@ UcExpr* Parser::extract_val() {
 	str.data.StrLit = token.data.StrLit;
 	expr->data.Value = str;
 	break;
+
+    case Token::Active::Lexeme:
+	switch (token.data.Lexeme) {
+	case Lexeme::Out:
+	case Lexeme::In:
+	case Lexeme::ErrOut:
+	case Lexeme::True:
+	case Lexeme::False:
+	    Value builtin;
+	    builtin.active = Value::Active::Builtin;
+	    builtin.data.Builtin = token.data.Lexeme;
+	    expr->data.Value = builtin;
+	    break;
+
+	case Lexeme::LBrace:
+	    expr = extract_list();
+	    break;
+	    // This should print an error
+	default: assert(false);
+	}
+	   
+	break;
     default: assert(false); // unreachable
     }
 
     return expr;
+}
+
+UcExpr* Parser::extract_list() {
+    UcExpr* head = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+    head->active = UcExpr::Active::List;
+    UcExpr* current_node = head;
+    
+    while (true) {
+	if (m_tokenizer->peek_token().active == Token::Active::Lexeme
+	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RBrace) {
+	    m_tokenizer->skip_token();
+	    break;
+	} else if (m_tokenizer->peek_token().active == Token::Active::Lexeme
+		   && m_tokenizer->peek_token().data.Lexeme == Lexeme::Comma) {
+	    m_tokenizer->skip_token();
+	    continue;
+	}
+	
+	
+	current_node->data.List.value = extract_val();
+	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+	current_node = current_node->data.List.next;
+    }
+    
+    return head;
 }

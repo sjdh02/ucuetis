@@ -75,6 +75,7 @@ public:
     Token get_current();
     Token peek_token();
     void step_back();
+    void skip_token();
     ~Tokenizer() = default;
 };
 
