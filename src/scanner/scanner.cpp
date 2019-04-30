@@ -10,7 +10,7 @@ Token Tokenizer::get_next() {
     if (m_pos >= m_len) {
 	Token token;
 	token.active = Token::Active::Lexeme;
-	token.data.lexeme = Lexeme::EOS;
+	token.data.Lexeme = Lexeme::EOS;
 	
 	return token;
     }
@@ -86,7 +86,7 @@ Token Tokenizer::parse_ident() {
 	++m_pos;
     }
 
-    buffer = m_allocator->amalloc<char*>(len + 1);
+    buffer = static_cast<char*>(m_allocator->amalloc(sizeof(char) * len + 1));
     buffer[len] = '\0';
     strncpy(buffer, m_data + start, len);
 
@@ -96,31 +96,31 @@ Token Tokenizer::parse_ident() {
 	    m_allocator->afree(buffer);
 	    token.active = Token::Active::Lexeme;
 	    switch (i) {
-	    case 0: token.data.lexeme = Lexeme::Fn; break;
-	    case 1: token.data.lexeme = Lexeme::For; break;
-	    case 2: token.data.lexeme = Lexeme::While; break;
-	    case 3: token.data.lexeme = Lexeme::If; break;
-	    case 4: token.data.lexeme = Lexeme::Else; break;
-	    case 5: token.data.lexeme = Lexeme::True; break;
-	    case 6: token.data.lexeme = Lexeme::False; break;
-	    case 7: token.data.lexeme = Lexeme::Out; break;
-	    case 8: token.data.lexeme = Lexeme::In; break;
-	    case 9: token.data.lexeme = Lexeme::ErrOut; break;
-	    case 10: token.data.lexeme = Lexeme::Num; break;
-	    case 11: token.data.lexeme = Lexeme::Str; break;
-	    case 12: token.data.lexeme = Lexeme::List; break;
-	    case 13: token.data.lexeme = Lexeme::It; break;
-	    case 14: token.data.lexeme = Lexeme::Yield; break;
-	    case 15: token.data.lexeme = Lexeme::Loop; break;
-	    case 16: token.data.lexeme = Lexeme::Break; break;
-	    case 17: token.data.lexeme = Lexeme::Assign; break;
+	    case 0: token.data.Lexeme = Lexeme::Fn; break;
+	    case 1: token.data.Lexeme = Lexeme::For; break;
+	    case 2: token.data.Lexeme = Lexeme::While; break;
+	    case 3: token.data.Lexeme = Lexeme::If; break;
+	    case 4: token.data.Lexeme = Lexeme::Else; break;
+	    case 5: token.data.Lexeme = Lexeme::True; break;
+	    case 6: token.data.Lexeme = Lexeme::False; break;
+	    case 7: token.data.Lexeme = Lexeme::Out; break;
+	    case 8: token.data.Lexeme = Lexeme::In; break;
+	    case 9: token.data.Lexeme = Lexeme::ErrOut; break;
+	    case 10: token.data.Lexeme = Lexeme::Num; break;
+	    case 11: token.data.Lexeme = Lexeme::Str; break;
+	    case 12: token.data.Lexeme = Lexeme::List; break;
+	    case 13: token.data.Lexeme = Lexeme::It; break;
+	    case 14: token.data.Lexeme = Lexeme::Yield; break;
+	    case 15: token.data.Lexeme = Lexeme::Loop; break;
+	    case 16: token.data.Lexeme = Lexeme::Break; break;
+	    case 17: token.data.Lexeme = Lexeme::Assign; break;
 	    default: assert(false); // unreachable
 	    }
 	}
     }
 
     if (!matched)
-	token.data.ident = buffer;
+	token.data.Ident = buffer;
 	
     m_last_len = len;
     return token;
@@ -140,11 +140,11 @@ Token Tokenizer::parse_num() {
 
     m_column += len;
 
-    buffer = m_allocator->amalloc<char*>(len + 1);
+    buffer = static_cast<char*>(m_allocator->amalloc(sizeof(char) * len + 1));
     buffer[len] = '\0';
     strncpy(buffer, m_data + start, len);
 
-    token.data.num = static_cast<uint64_t>(strtoul(buffer, nullptr, 10));
+    token.data.NumLit = static_cast<uint64_t>(strtoul(buffer, nullptr, 10));
     m_last_len = len;
     m_allocator->afree(buffer);
     return token;
@@ -164,12 +164,12 @@ Token Tokenizer::parse_str() {
 
     m_column += len;
     
-    buffer = m_allocator->amalloc<char*>(len + 1);
+    buffer = static_cast<char*>(m_allocator->amalloc(sizeof(char) * len + 1));
     buffer[len] = '\0';
 
     strncpy(buffer, m_data + start, len);
 
-    token.data.str = buffer;
+    token.data.StrLit = buffer;
     m_last_len = len;
     return token;
 }
@@ -186,34 +186,34 @@ Token Tokenizer::parse_multi() {
     switch (m_data[m_pos]) {
     case '!':
 	if (next == '=')
-	    token.data.lexeme = Lexeme::Neq;
+	    token.data.Lexeme = Lexeme::Neq;
 	else
-	    token.data.lexeme = Lexeme::Bang;
+	    token.data.Lexeme = Lexeme::Bang;
 	break;
     case '<':
 	if (next == '>')
-	    token.data.lexeme = Lexeme::Pipe;
+	    token.data.Lexeme = Lexeme::Pipe;
 	else if (next =='=')
-	    token.data.lexeme = Lexeme::LtOrEq;
+	    token.data.Lexeme = Lexeme::LtOrEq;
 	else
-	    token.data.lexeme = Lexeme::Lt;
+	    token.data.Lexeme = Lexeme::Lt;
 	break;
     case '>':
 	if (next == '=')
-	    token.data.lexeme = Lexeme::GtOrEq;
+	    token.data.Lexeme = Lexeme::GtOrEq;
 	else
-	    token.data.lexeme = Lexeme::Gt;
+	    token.data.Lexeme = Lexeme::Gt;
 	break;
     case '=':
 	if (next == '>')
-	    token.data.lexeme = Lexeme::RType;
+	    token.data.Lexeme = Lexeme::RType;
 	else
-	    token.data.lexeme = Lexeme::Eq;
+	    token.data.Lexeme = Lexeme::Eq;
 	break;
     default: assert(false); // unreachable
     }
 
-    switch (token.data.lexeme) {
+    switch (token.data.Lexeme) {
     case Lexeme::Eq:
     case Lexeme::Gt:
     case Lexeme::Lt:
@@ -238,21 +238,21 @@ Token Tokenizer::parse_single() {
     m_last_len = 1;
 
     switch (m_data[m_pos]) {
-    case '(': token.data.lexeme = Lexeme::LParen; break;
-    case ')': token.data.lexeme = Lexeme::RParen; break;
-    case '[': token.data.lexeme = Lexeme::LBracket; break;
-    case ']': token.data.lexeme = Lexeme::RBracket; break;
-    case '{': token.data.lexeme = Lexeme::LBrace; break;
-    case '}': token.data.lexeme = Lexeme::LBrace; break;
-    case '+': token.data.lexeme = Lexeme::Plus; break;
-    case '-': token.data.lexeme = Lexeme::Minus; break;
-    case '*': token.data.lexeme = Lexeme::Mul; break;
-    case '/': token.data.lexeme = Lexeme::Div; break;
-    case ';': token.data.lexeme = Lexeme::Semicolon; break;
-    case '|': token.data.lexeme = Lexeme::Bar; break;
-    case ':': token.data.lexeme = Lexeme::Colon; break;
-    case ',': token.data.lexeme = Lexeme::Comma; break;
-    case '.': token.data.lexeme = Lexeme::Dot; break;
+    case '(': token.data.Lexeme = Lexeme::LParen; break;
+    case ')': token.data.Lexeme = Lexeme::RParen; break;
+    case '[': token.data.Lexeme = Lexeme::LBracket; break;
+    case ']': token.data.Lexeme = Lexeme::RBracket; break;
+    case '{': token.data.Lexeme = Lexeme::LBrace; break;
+    case '}': token.data.Lexeme = Lexeme::LBrace; break;
+    case '+': token.data.Lexeme = Lexeme::Plus; break;
+    case '-': token.data.Lexeme = Lexeme::Minus; break;
+    case '*': token.data.Lexeme = Lexeme::Mul; break;
+    case '/': token.data.Lexeme = Lexeme::Div; break;
+    case ';': token.data.Lexeme = Lexeme::Semicolon; break;
+    case '|': token.data.Lexeme = Lexeme::Bar; break;
+    case ':': token.data.Lexeme = Lexeme::Colon; break;
+    case ',': token.data.Lexeme = Lexeme::Comma; break;
+    case '.': token.data.Lexeme = Lexeme::Dot; break;
     default: assert(false); // unreachable
     }
 

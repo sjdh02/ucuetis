@@ -19,18 +19,12 @@ int main(int argc, char** argv) {
     UcMemArena arena;
     Tokenizer tokenizer("(defn x 200)", &arena);
 
-    assert(tokenizer.get_next().data.lexeme == Lexeme::LParen);
-    assert(tokenizer.get_next().data.lexeme == Lexeme::Assign);
-    assert(strcmp(tokenizer.get_next().data.ident, "x") == 0);
-    assert(tokenizer.get_next().data.num == 200);
-    assert(tokenizer.get_next().data.lexeme == Lexeme::RParen);
-    assert(tokenizer.get_next().data.lexeme == Lexeme::EOS);
+    Parser parser(&tokenizer, &arena);
+    auto expr = parser.get_expr();
 
-    UcExpr expr;
-    expr.active = UcExpr::Active::Assign;
-    expr.data.assign_expr.ident = "hello";
-
+    printf("assignment name: %s\n", expr->data.Assign.ident->data.Value.data.Ident);
+    printf("assignment value: %lu\n", expr->data.Assign.value->data.Value.data.NumLit);
     
-    free(result);    
+    free(result);
     return 0;
 }

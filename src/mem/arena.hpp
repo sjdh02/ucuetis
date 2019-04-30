@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cassert>
+#include <cstring>
 
 struct BMeta {
     BMeta* next;
@@ -21,67 +22,10 @@ class UcMemArena {
 public:
     UcMemArena();
     
-    template <typename T>
-    T amalloc(size_t nmeb) {
-	if (sizeof(T) == 0 || nmeb == 0) {
-	    return nullptr;
-	}
-	
-	if (m_memory == nullptr) {
-	    m_memory = static_cast<unsigned char*>(malloc(sizeof(char) * 16392));
-	    assert(m_memory != nullptr);
-	    m_allocated = 16392;
-	}
 
-	unsigned char* memory;
-	BMeta* block = find_free_block(sizeof(T));
 
-	if (block != nullptr) {
-	    block->free = 0;
-	    // NOTE(sam): Since we add the size of a BMeta when returning, we only reinterp the block pointer here.
-	    memory = reinterpret_cast<unsigned char*>(block);
-	} else {
-	    memory = m_memory + m_pos;
-	    m_pos += sizeof(BMeta) + (sizeof(T) * nmeb);
-	    while ((m_pos & 7) != 0)
-		++m_pos;
-	    
-	    if (m_pos >= m_allocated) {
-		m_memory = static_cast<unsigned char*>(realloc(m_memory, sizeof(char) * (m_allocated * 2)));
-		assert(m_memory != nullptr);
-		m_allocated *= 2;
-	    }
-	    
-	    block = reinterpret_cast<BMeta*>(memory);
-	    block->next = nullptr;
-	    block->data_size = sizeof(T);
-	    block->free = 0;
-	    block->magic = 0x77;
-	    
-	    insert_new_block(block);
-	}
-	
-	return reinterpret_cast<T>(memory + sizeof(BMeta));	
-    };
-
-    template <typename T>
-    T acalloc(size_t nmeb) {
-	auto memory = amalloc<T>(nmeb);
-	memset(memory, 0, sizeof(T) * nmeb);
-	return memory;
-    }
-
-    template <typename T>
-    void afree(T* ptr) {
-	if (ptr == nullptr) {
-	    return;
-	}
-
-	// NOTE(sam): A BMeta struct is inserted right before the requested memory, so the ptr minus the size of
-	// a BMeta struct will get the start of the BMeta struct.
-	BMeta* current = reinterpret_cast<BMeta*>(reinterpret_cast<unsigned char*>(ptr) - sizeof(BMeta));
-	assert(current->magic == 0x77);
-	current->free = 1;
-    };
+    void* amalloc(size_t nmeb);
+    void* acalloc(size_t size, size_t nmeb);
+    void afree(void* ptr);
     ~UcMemArena();
 };
