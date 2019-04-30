@@ -20,7 +20,8 @@ struct Value {
 
 struct UcArgList {
     UcArgList* next;
-    Value data;
+    char* ident;
+    Lexeme type;
 };
 
 struct UcExpr {
@@ -30,7 +31,7 @@ struct UcExpr {
 	Math, Pipe,
 	If, While,
 	For, Yield,
-	Function, FunctionCall
+	FunctionDecl, FunctionCall
     };
     
     Active active;
@@ -91,7 +92,7 @@ struct UcExpr {
 	 */
 	struct {
 	    UcExpr* cond;
-	    UcExpr* statements;
+	    UcExpr* stmts;
 	} If;
 
 	/*
@@ -99,7 +100,7 @@ struct UcExpr {
 	 */
 	struct {
 	    UcExpr* cond;
-	    UcExpr* statements;
+	    UcExpr* stmts;
 	} While;
 
 	/*
@@ -107,7 +108,7 @@ struct UcExpr {
 	 */
 	struct {
 	    UcExpr* target;
-	    UcExpr* statements;
+	    UcExpr* stmts;
 	} For;
 
 	/*
@@ -119,17 +120,17 @@ struct UcExpr {
 	 * A function defintion contains a return type, arguments list, and list of statements in the body.
 	 */
 	struct {
+	    UcArgList* args;
+	    UcExpr* stmts;
 	    Lexeme r_type;
-	    UcArgList* arguments;
-	    UcExpr* statements;
-	} Function;
+	} FunctionDecl;
 
 	/*
 	 * A function call needs a target function identifier and list of arguments.
 	 */
 	struct {
 	    char* ident;
-	    UcExpr* args;	    
+	    UcExpr* args;
 	} FunctionCall;	
     } data;
 };

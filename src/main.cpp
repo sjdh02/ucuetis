@@ -17,14 +17,11 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     UcMemArena arena;
-    Tokenizer tokenizer("(testFn[1, 2, 3, 4, 5])", &arena);
+    Tokenizer tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", &arena);
 
     Parser parser(&tokenizer, &arena);
     auto expr = parser.get_expr();
 
-    printf("%s\n", expr->data.FunctionCall.ident);
-    printf("%d\n", expr->data.FunctionCall.args->data.List.value->data.Value.data.NumLit);
-    
     free(result);
     return 0;
 }

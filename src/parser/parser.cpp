@@ -38,13 +38,13 @@ UcExpr* Parser::get_expr() {
 	case Lexeme::If:
 	    expr->active = UcExpr::Active::If;
 	    expr->data.If.cond = get_expr();
-	    expr->data.If.statements = extract_body();
+	    expr->data.If.stmts = extract_body();
 	    break;
 	    
 	case Lexeme::While:
 	    expr->active = UcExpr::Active::While;
 	    expr->data.While.cond = get_expr();
-	    expr->data.While.statements = extract_body();
+	    expr->data.While.stmts = extract_body();
 	    break;
 
 	case Lexeme::For:
@@ -54,7 +54,7 @@ UcExpr* Parser::get_expr() {
 	    expr->data.For.target = extract_val();
 	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
 	    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::RParen);
-	    expr->data.For.statements = extract_body();
+	    expr->data.For.stmts = extract_body();
 	    break;
 	    
 	case Lexeme::Lt:
@@ -141,6 +141,15 @@ UcExpr* Parser::extract_val() {
 	case Lexeme::LBrace:
 	    expr = extract_list();
 	    break;
+
+	case Lexeme::LParen:
+	    m_tokenizer->step_back();
+	    expr = get_expr();
+	    break;
+
+	case Lexeme::Fn:
+	    expr = parse_function_decl();
+	    break;
 	    // This should print an error
 	default: assert(false);
 	}
@@ -221,4 +230,53 @@ UcExpr* Parser::parse_function_call() {
     }
 
     return head;
+}
+
+UcExpr* Parser::parse_function_decl() {
+    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);
+    UcExpr* expr = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+    expr->active = UcExpr::Active::FunctionDecl;
+    
+    UcArgList* head = static_cast<UcArgList*>(m_allocator->amalloc(sizeof(UcArgList)));
+    UcArgList* current_node = head;
+
+    while (true) {
+	if (m_tokenizer->peek_token().active == Token::Active::Lexeme) {
+	    if (m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen) {
+		m_tokenizer->skip_token();
+		break;
+	    } else if (m_tokenizer->peek_token().data.Lexeme == Lexeme::Comma) {
+		m_tokenizer->skip_token();
+		continue;
+	    }
+	}
+
+	assert(m_tokenizer->get_next().active == Token::Active::Ident);
+	current_node->ident = m_tokenizer->get_current().data.Ident;
+
+	assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+	assert(m_tokenizer->get_current().data.Lexeme == Lexeme::Colon);
+
+	assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+	current_node->type = m_tokenizer->get_current().data.Lexeme;
+
+	current_node->next = static_cast<UcArgList*>(m_allocator->amalloc(sizeof(UcArgList)));
+	current_node = current_node->next;
+    }
+
+    expr->data.FunctionDecl.args = head;
+
+    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::RType);
+
+    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+    expr->data.FunctionDecl.r_type = m_tokenizer->get_current().data.Lexeme;
+    
+    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);
+    
+    expr->data.FunctionDecl.stmts = extract_body();
+    
+    return expr;
 }
