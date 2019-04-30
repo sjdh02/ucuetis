@@ -25,6 +25,11 @@ int main(int argc, char** argv) {
     assert(tokenizer.get_next().data.num == 200);
     assert(tokenizer.get_next().data.lexeme == Lexeme::RParen);
     assert(tokenizer.get_next().data.lexeme == Lexeme::EOS);
+
+    UcExpr expr;
+    expr.active = UcExpr::Active::Assign;
+    expr.data.assign_expr.ident = "hello";
+
     
     free(result);    
     return 0;
