@@ -23,7 +23,7 @@ public:
     
     template <typename T>
     T amalloc(size_t nmeb) {
-	if (sizeof(T) < 1) {
+	if (sizeof(T) == 0 || nmeb == 0) {
 	    return nullptr;
 	}
 	

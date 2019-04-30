@@ -34,4 +34,4 @@ class Parser {
 public:
     Parser(Tokenizer* p_tokenizer, UcMemArena* p_allocator) : m_tokenizer(p_tokenizer), m_allocator(p_allocator) {};
     ~Parser() = default;
-}
+};
