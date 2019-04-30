@@ -1,5 +1,11 @@
 #include "parser.hpp"
 
+/* 
+ * TODO(sam): Go through and replace most of these assert()'s with a custom error handling solution.
+ * Reporting errors > just crashing, obviously.
+ * TODO(sam): A better function to check for the correct token type.
+ */
+
 UcExpr* Parser::get_expr() {
     UcExpr* expr = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
     auto token = m_tokenizer->get_next();
@@ -29,7 +35,16 @@ UcExpr* Parser::get_expr() {
 	    expr->data.Math.rhs = extract_val();
 	    break;
 
-
+	case Lexeme::For:
+	    expr->active = UcExpr::Active::For;
+	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+	    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);
+	    expr->data.For.target = extract_val();
+	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
+	    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::RParen);
+	    expr->data.For.statements = extract_body();
+	    break;
+	    
 	case Lexeme::Lt:
 	case Lexeme::Gt:
 	case Lexeme::Eq:
@@ -98,6 +113,7 @@ UcExpr* Parser::extract_val() {
 	case Lexeme::ErrOut:
 	case Lexeme::True:
 	case Lexeme::False:
+	case Lexeme::It:
 	    Value builtin;
 	    builtin.active = Value::Active::Builtin;
 	    builtin.data.Builtin = token.data.Lexeme;
@@ -124,21 +140,42 @@ UcExpr* Parser::extract_list() {
     UcExpr* current_node = head;
     
     while (true) {
-	if (m_tokenizer->peek_token().active == Token::Active::Lexeme
-	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RBrace) {
-	    m_tokenizer->skip_token();
-	    break;
-	} else if (m_tokenizer->peek_token().active == Token::Active::Lexeme
-		   && m_tokenizer->peek_token().data.Lexeme == Lexeme::Comma) {
-	    m_tokenizer->skip_token();
-	    continue;
+	if (m_tokenizer->peek_token().active == Token::Active::Lexeme) {
+	    if (m_tokenizer->peek_token().data.Lexeme == Lexeme::RBrace) {
+		m_tokenizer->skip_token();
+		break;
+	    } else if (m_tokenizer->peek_token().data.Lexeme == Lexeme::Comma) {
+		m_tokenizer->skip_token();
+		continue;
+	    } else {
+		// This should print an error about an unexpected token
+		assert(false);
+	    }
 	}
-	
 	
 	current_node->data.List.value = extract_val();
 	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
 	current_node = current_node->data.List.next;
     }
     
+    return head;
+}
+
+UcExpr* Parser::extract_body() {
+    UcExpr* head = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+    head->active = UcExpr::Active::List;
+    UcExpr* current_node = head;
+
+    while (true) {
+	if (m_tokenizer->peek_token().active == Token::Active::Lexeme
+	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen) {
+		break;
+	}
+
+	current_node->data.List.value = get_expr();
+	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+	current_node = current_node->data.List.next;
+    }
+
     return head;
 }

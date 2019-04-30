@@ -17,15 +17,14 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     UcMemArena arena;
-    Tokenizer tokenizer("(defn x { 1, 2, 3, 4, 5 })", &arena);
+    Tokenizer tokenizer("(for (items) (+ it 200) (+ it 200))", &arena);
 
     Parser parser(&tokenizer, &arena);
     auto expr = parser.get_expr();
 
-    printf("assignment name: %s\n", expr->data.Assign.ident->data.Value.data.Ident);
-    printf("assignment value: %lu\n", expr->data.Assign.value->data.List.value->data.Value.data.NumLit);
-    printf("assignment value: %lu\n", expr->data.Assign.value->data.List.value->data.Value.active);
-
+    printf("target: %s\n", expr->data.For.target->data.Value.data.Ident);
+    printf("expression: %d\n", expr->data.For.statements->data.List.value->data.Math.rhs->data.Value.data.NumLit);
+    
     free(result);
     return 0;
 }
