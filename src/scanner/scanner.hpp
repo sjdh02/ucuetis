@@ -46,10 +46,10 @@ struct Token {
     enum class Active { Lexeme, NumLit, StrLit, Ident };
     Active active;
     union {
-	Lexeme lexeme;
-	uint64_t num;
-	char* str;
-	char* ident;
+	Lexeme Lexeme;
+	uint64_t NumLit;
+	char* StrLit;
+	char* Ident;
     } data;
 };
 
@@ -75,6 +75,7 @@ public:
     Token get_current();
     Token peek_token();
     void step_back();
+    void skip_token();
     ~Tokenizer() = default;
 };
 
