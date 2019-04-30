@@ -17,13 +17,13 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     UcMemArena arena;
-    Tokenizer tokenizer("(for (items) (+ it 200) (+ it 200))", &arena);
+    Tokenizer tokenizer("(for (items) (+ it 200) (+ it 300))", &arena);
 
     Parser parser(&tokenizer, &arena);
     auto expr = parser.get_expr();
 
     printf("target: %s\n", expr->data.For.target->data.Value.data.Ident);
-    printf("expression: %d\n", expr->data.For.statements->data.List.value->data.Math.rhs->data.Value.data.NumLit);
+    printf("expression: %d\n", expr->data.For.statements->data.List.next->data.List.value->data.Math.rhs->data.Value.data.NumLit);
     
     free(result);
     return 0;
