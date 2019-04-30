@@ -36,16 +36,15 @@ UcExpr* Parser::get_expr() {
 	    break;
 
 	case Lexeme::If:
+	    expr->active = UcExpr::Active::If;
+	    expr->data.If.cond = get_expr();
+	    expr->data.If.statements = extract_body();
+	    break;
+	    
 	case Lexeme::While:
-	    if (token.data.Lexeme == Lexeme::If) {
-		expr->active = UcExpr::Active::If;
-		expr->data.If.cond = get_expr();
-		expr->data.If.statements = extract_body();
-	    } else {
-		expr->active = UcExpr::Active::While;
-		expr->data.While.cond = get_expr();
-		expr->data.While.statements = extract_body();
-	    }	    
+	    expr->active = UcExpr::Active::While;
+	    expr->data.While.cond = get_expr();
+	    expr->data.While.statements = extract_body();
 	    break;
 
 	case Lexeme::For:
@@ -78,13 +77,19 @@ UcExpr* Parser::get_expr() {
 	case Lexeme::EOS:
 	    return nullptr;
 	default: assert(false); // unreachable
-	}
-	
+	}	
 	break;
-	
+
+    case Token::Active::Ident:
+	if (m_tokenizer->get_next().active == Token::Active::Lexeme
+	    && m_tokenizer->get_current().data.Lexeme == Lexeme::LBracket) {
+	    expr->active = UcExpr::Active::FunctionCall;
+	    expr->data.FunctionCall.ident = token.data.Ident;
+	    expr->data.FunctionCall.args = parse_function_call();
+	    break;
+	}
     case Token::Active::NumLit:
     case Token::Active::StrLit:
-    case Token::Active::Ident:
 	// This should print an error instead of being marked as unreachable.
     default: assert(false); // unreachable
     }
@@ -186,6 +191,31 @@ UcExpr* Parser::extract_body() {
 	}
 
 	current_node->data.List.value = get_expr();
+	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+	current_node = current_node->data.List.next;
+    }
+
+    return head;
+}
+
+UcExpr* Parser::parse_function_call() {
+    UcExpr* head = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
+    head->active = UcExpr::Active::List;
+    UcExpr* current_node = head;
+
+    while (true) {
+	if (m_tokenizer->peek_token().active == Token::Active::Lexeme) {
+	    if (m_tokenizer->peek_token().data.Lexeme == Lexeme::RBracket) {
+		m_tokenizer->skip_token();
+		break;
+	    } else if (m_tokenizer->peek_token().data.Lexeme == Lexeme::Comma) {
+		m_tokenizer->skip_token();
+		continue;
+	    }
+	}
+	
+	
+	current_node->data.List.value = extract_val();
 	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
 	current_node = current_node->data.List.next;
     }

@@ -17,14 +17,13 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     UcMemArena arena;
-    Tokenizer tokenizer("(if (< x 200) (+ x 200))", &arena);
+    Tokenizer tokenizer("(testFn[1, 2, 3, 4, 5])", &arena);
 
     Parser parser(&tokenizer, &arena);
     auto expr = parser.get_expr();
 
-    printf("target: %d\n", expr->data.If.statements->data.List.value->data.Math.op);
-    printf("target: %s\n", expr->data.If.statements->data.List.value->data.Math.lhs->data.Value.data.Ident);
-    printf("target: %d\n", expr->data.If.statements->data.List.value->data.Math.rhs->data.Value.data.NumLit);
+    printf("%s\n", expr->data.FunctionCall.ident);
+    printf("%d\n", expr->data.FunctionCall.args->data.List.value->data.Value.data.NumLit);
     
     free(result);
     return 0;
