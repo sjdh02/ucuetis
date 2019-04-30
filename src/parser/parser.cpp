@@ -35,6 +35,19 @@ UcExpr* Parser::get_expr() {
 	    expr->data.Math.rhs = extract_val();
 	    break;
 
+	case Lexeme::If:
+	case Lexeme::While:
+	    if (token.data.Lexeme == Lexeme::If) {
+		expr->active = UcExpr::Active::If;
+		expr->data.If.cond = get_expr();
+		expr->data.If.statements = extract_body();
+	    } else {
+		expr->active = UcExpr::Active::While;
+		expr->data.While.cond = get_expr();
+		expr->data.While.statements = extract_body();
+	    }	    
+	    break;
+
 	case Lexeme::For:
 	    expr->active = UcExpr::Active::For;
 	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
