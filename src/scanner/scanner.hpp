@@ -80,6 +80,7 @@ public:
     void step_back();
     void skip_token();
     size_t get_pos();
+    bool is_at_end();
     ~Tokenizer() = default;
 };
 

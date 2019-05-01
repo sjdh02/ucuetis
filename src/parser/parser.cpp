@@ -1,6 +1,10 @@
 #include "parser.hpp"
 
 UcExpr* Parser::get_expr() {
+    if (m_tokenizer->is_at_end())
+	return nullptr;
+
+    
     UcExpr* expr = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
     Token token;
 
@@ -65,8 +69,7 @@ UcExpr* Parser::get_expr() {
 	    expr->data.Yield = extract_val();
 	    break;
 	    
-	case Lexeme::EOS:
-	    return nullptr;
+	case Lexeme::EOS: m_stream->push_error(ErrorKind::UnexpectedEOS, "parser", m_tokenizer->get_pos()); break;
 	default: assert(false); // unreachable
 	}	
 	break;

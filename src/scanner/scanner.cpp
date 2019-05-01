@@ -7,7 +7,7 @@ static const char* RESERVED[] = {
 };
 
 Token Tokenizer::get_next() {
-    if (m_pos >= m_len) {
+    if (is_at_end()) {
 	Token token;
 	token.active = Token::Active::Lexeme;
 	token.data.Lexeme = Lexeme::EOS;
@@ -290,6 +290,10 @@ void Tokenizer::skip_token() {
 
 size_t Tokenizer::get_pos() {
     return (static_cast<size_t>(m_line) << 32) | static_cast<size_t>(m_column);
+}
+
+bool Tokenizer::is_at_end() {
+    return (m_pos >= m_len);
 }
 
 bool is_delim(char c) {

@@ -10,7 +10,7 @@ class Analyzer {
     UcErrorStream* m_stream;
 public:
     Analyzer(Parser* p_parser, UcMemArena* p_allocator, UcErrorStream* p_stream) :
-	m_allocator(p_allocator), m_stream(p_stream), m_parser(p_parser) {};
+	m_parser(p_parser), m_allocator(p_allocator), m_stream(p_stream) {};
     
     ~Analyzer() = default;
 };
