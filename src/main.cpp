@@ -5,8 +5,7 @@
 #include "error/error.hpp"
 #include "scanner/scanner.hpp"
 #include "parser/parser.hpp"
-
-// TODO(sam): Replace assert() in parser with custom error handling
+#include "analyzer/analyzer.hpp"
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -18,10 +17,12 @@ int main(int argc, char** argv) {
 
     UcMemArena arena;
     UcErrorStream stream;
+
     Tokenizer tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", &arena, &stream);
 
     Parser parser(&tokenizer, &arena, &stream);
-    auto expr = parser.get_expr();
+
+    Analyzer analyzer(&parser, &arena, &stream);
 
     stream.report_errors();
     
