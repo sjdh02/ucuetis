@@ -32,7 +32,8 @@ struct UcExpr {
 	Math, Pipe,
 	If, While,
 	For, Yield,
-	FunctionDecl, FunctionCall
+	FunctionDecl, FunctionCall,
+	BadExpr,
     };
     
     Active active;
@@ -132,7 +133,7 @@ struct UcExpr {
 	struct {
 	    char* ident;
 	    UcExpr* args;
-	} FunctionCall;	
+	} FunctionCall;
     } data;
 };
 
@@ -145,9 +146,11 @@ class Parser {
     UcExpr* extract_list();
     UcExpr* parse_function_call();
     UcExpr* parse_function_decl();
+    // NOTE(sam) @HACK: This is a *really* hacky way to take arguments for this, but it does work.
+    bool check_token(Token::Active tag, uint64_t enum_or_num, char* ident_or_str);
 public:
     Parser(Tokenizer* p_tokenizer, UcMemArena* p_allocator, UcErrorStream* p_stream) :
-	m_tokenizer(p_tokenizer), m_stream(p_stream), m_allocator(p_allocator) {};
+	m_tokenizer(p_tokenizer), m_allocator(p_allocator), m_stream(p_stream) {};
     
     UcExpr* get_expr();
     ~Parser() = default;

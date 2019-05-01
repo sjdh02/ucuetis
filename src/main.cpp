@@ -1,13 +1,12 @@
-#include <cstdlib>
 #include <cstdio>
-#include <cassert>
-#include <cstring>
 
 #include "file/file.hpp"
 #include "mem/arena.hpp"
 #include "error/error.hpp"
 #include "scanner/scanner.hpp"
 #include "parser/parser.hpp"
+
+// TODO(sam): Replace assert() in parser with custom error handling
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -18,7 +17,7 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     UcMemArena arena;
-    UcErrorStream stream(&arena);
+    UcErrorStream stream;
     Tokenizer tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", &arena, &stream);
 
     Parser parser(&tokenizer, &arena, &stream);

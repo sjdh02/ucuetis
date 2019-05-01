@@ -11,6 +11,7 @@ Token Tokenizer::get_next() {
 	Token token;
 	token.active = Token::Active::Lexeme;
 	token.data.Lexeme = Lexeme::EOS;
+	m_last_len = 0;
 	
 	return token;
     }
@@ -288,7 +289,7 @@ void Tokenizer::skip_token() {
 }
 
 size_t Tokenizer::get_pos() {
-    return ((size_t)m_line << 32) | (size_t)m_column;
+    return (static_cast<size_t>(m_line) << 32) | static_cast<size_t>(m_column);
 }
 
 bool is_delim(char c) {

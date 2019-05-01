@@ -13,11 +13,10 @@ enum class ErrorKind {
 };
 
 class UcErrorStream {
-    UcMemArena* m_allocator;
     char m_errors[MAX_ERR][MAX_ERR_LEN];
     size_t m_current_error;
 public:
-    UcErrorStream(UcMemArena* p_allocator);
+    UcErrorStream() : m_errors{ { '\0' } }, m_current_error(0) {};
     void push_error(ErrorKind kind, char* module, size_t pos);
     char* pop_error();
     void report_errors();

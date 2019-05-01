@@ -1,7 +1,5 @@
 #include "error.hpp"
 
-UcErrorStream::UcErrorStream(UcMemArena* p_allocator) : m_allocator(p_allocator), m_errors{ { '\0' } }, m_current_error(0) {}
-
 void UcErrorStream::push_error(ErrorKind kind, char* module, size_t pos) {
     int line = (pos >> 32);
     int column = (pos << 32) >> 32;
@@ -24,7 +22,7 @@ void UcErrorStream::push_error(ErrorKind kind, char* module, size_t pos) {
     case ErrorKind::UnexpectedEOS:
 	snprintf(m_errors[m_current_error],
 		 MAX_ERR_LEN,
-		 "(%s) error: unexpected end-of-stream at %d:%d\n",
+		 "(%s) error: unexpected end-of-stream at %d:%d. perhaps you forgot a closing ')'?\n",
 		 module, line, column);
 	break;
     }
@@ -34,7 +32,7 @@ void UcErrorStream::push_error(ErrorKind kind, char* module, size_t pos) {
 
 char* UcErrorStream::pop_error() {
     if (m_current_error == 0)
-	return '\0';
+	return "\0";
 
     --m_current_error;
     return m_errors[m_current_error];
