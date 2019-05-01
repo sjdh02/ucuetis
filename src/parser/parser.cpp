@@ -195,9 +195,8 @@ UcExpr* Parser::extract_body() {
 
     while (true) {
 	if (m_tokenizer->peek_token().active == Token::Active::Lexeme
-	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen) {
+	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen)
 		break;
-	}
 
 	current_node->data.List.value = get_expr();
 	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
