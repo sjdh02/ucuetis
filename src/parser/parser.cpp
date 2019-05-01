@@ -4,6 +4,8 @@
  * TODO(sam): Go through and replace most of these assert()'s with a custom error handling solution.
  * Reporting errors > just crashing, obviously.
  * TODO(sam): A better function to check for the correct token type.
+ * TODO(sam): When an error is encountered, don't abort and instead just add a message to the ErrorStream.
+ * This can just be output if the MAX_ERR count is reached.
  */
 
 UcExpr* Parser::get_expr() {

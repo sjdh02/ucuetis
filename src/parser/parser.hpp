@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "../mem/arena.hpp"
+#include "../error/error.hpp"
 #include "../scanner/scanner.hpp"
 
 struct Value {
@@ -138,13 +139,16 @@ struct UcExpr {
 class Parser {
     Tokenizer* m_tokenizer;
     UcMemArena* m_allocator;
+    UcErrorStream* m_stream;
     UcExpr* extract_val();
     UcExpr* extract_body();
     UcExpr* extract_list();
     UcExpr* parse_function_call();
     UcExpr* parse_function_decl();
 public:
-    Parser(Tokenizer* p_tokenizer, UcMemArena* p_allocator) : m_tokenizer(p_tokenizer), m_allocator(p_allocator) {};
+    Parser(Tokenizer* p_tokenizer, UcMemArena* p_allocator, UcErrorStream* p_stream) :
+	m_tokenizer(p_tokenizer), m_stream(p_stream), m_allocator(p_allocator) {};
+    
     UcExpr* get_expr();
     ~Parser() = default;
 };

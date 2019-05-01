@@ -2,11 +2,11 @@
 
 #include <cstdint>
 #include <cstring>
-#include <cstdio>
 #include <cstdlib>
 #include <cassert>
 
 #include "../mem/arena.hpp"
+#include "../error/error.hpp"
 
 enum class Lexeme {
     // scoping characters
@@ -56,8 +56,9 @@ struct Token {
 class Tokenizer {
     const char* m_data;
     UcMemArena* m_allocator;
-    size_t m_len;
-    size_t m_pos;
+    UcErrorStream* m_stream;
+    uint32_t m_len;
+    uint32_t m_pos;
     int m_line;
     int m_column;
     int m_last_len;
@@ -69,13 +70,16 @@ class Tokenizer {
     Token parse_single();
     void skip_whitespace();
 public:
-    Tokenizer(const char* p_data, UcMemArena* p_allocator) : m_data(p_data), m_allocator(p_allocator), m_len(strlen(p_data)),
-							     m_pos(0), m_line(1), m_column(0), m_last_len(0) {};
+    Tokenizer(const char* p_data, UcMemArena* p_allocator, UcErrorStream* p_stream) :
+	m_data(p_data), m_allocator(p_allocator), m_stream(p_stream),
+	m_len(strlen(p_data)), m_pos(0), m_line(1), m_column(0), m_last_len(0) {};
+    
     Token get_next();
     Token get_current();
     Token peek_token();
     void step_back();
     void skip_token();
+    size_t get_pos();
     ~Tokenizer() = default;
 };
 

@@ -67,7 +67,7 @@ Token Tokenizer::get_next() {
 	else if (is_alpha(m_data[m_pos]))
 	    return parse_ident();
 	else
-	    printf("(tokenizer) warning: unrecognized character %c\n", m_data[m_pos]);
+	    m_stream->push_error(ErrorKind::UnknownCharacter, "tokenizer", get_pos());
 	    ++m_pos;
 	    return get_next();
     }
@@ -285,6 +285,10 @@ Token Tokenizer::peek_token() {
 
 void Tokenizer::skip_token() {
     get_next();
+}
+
+size_t Tokenizer::get_pos() {
+    return ((size_t)m_line << 32) | (size_t)m_column;
 }
 
 bool is_delim(char c) {
