@@ -22,11 +22,15 @@ endif(BUILD_RELEASE)
 
 add_library(file src/file/file.cpp)
 add_library(arena src/mem/arena.cpp)
+add_library(error src/error/error.cpp)
 add_library(scanner src/scanner/scanner.cpp)
 add_library(parser src/parser/parser.cpp)
+add_library(analyzer src/analyzer/analyzer.cpp)
 
 add_executable(ucuetis src/main.cpp)
 
-target_link_libraries(scanner arena)
-target_link_libraries(parser arena scanner)
-target_link_libraries(ucuetis file scanner parser)
+target_link_libraries(error arena)
+target_link_libraries(scanner arena error)
+target_link_libraries(parser scanner error arena)
+target_link_libraries(analyzer parser error arena)
+target_link_libraries(ucuetis file scanner parser analyzer)

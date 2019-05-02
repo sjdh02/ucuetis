@@ -7,10 +7,11 @@ static const char* RESERVED[] = {
 };
 
 Token Tokenizer::get_next() {
-    if (m_pos >= m_len) {
+    if (is_at_end()) {
 	Token token;
 	token.active = Token::Active::Lexeme;
 	token.data.Lexeme = Lexeme::EOS;
+	m_last_len = 0;
 	
 	return token;
     }
@@ -67,7 +68,7 @@ Token Tokenizer::get_next() {
 	else if (is_alpha(m_data[m_pos]))
 	    return parse_ident();
 	else
-	    printf("(tokenizer) warning: unrecognized character %c\n", m_data[m_pos]);
+	    m_stream->push_error(ErrorKind::UnknownCharacter, "tokenizer", get_pos());
 	    ++m_pos;
 	    return get_next();
     }
@@ -285,6 +286,14 @@ Token Tokenizer::peek_token() {
 
 void Tokenizer::skip_token() {
     get_next();
+}
+
+size_t Tokenizer::get_pos() {
+    return (static_cast<size_t>(m_line) << 32) | static_cast<size_t>(m_column);
+}
+
+bool Tokenizer::is_at_end() {
+    return (m_pos >= m_len);
 }
 
 bool is_delim(char c) {

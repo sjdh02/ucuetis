@@ -1,19 +1,16 @@
 #include "parser.hpp"
 
-/* 
- * TODO(sam): Go through and replace most of these assert()'s with a custom error handling solution.
- * Reporting errors > just crashing, obviously.
- * TODO(sam): A better function to check for the correct token type.
- */
-
 UcExpr* Parser::get_expr() {
+    if (m_tokenizer->is_at_end())
+	return nullptr;
+
+    
     UcExpr* expr = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
-    auto token = m_tokenizer->get_next();
+    Token token;
 
     assert(expr != nullptr);
 
-    assert(token.active == Token::Active::Lexeme);
-    assert(token.data.Lexeme == Lexeme::LParen);
+    check_token(Token::Active::Lexeme, static_cast<uint64_t>(Lexeme::LParen), nullptr);
     token = m_tokenizer->get_next();
     
     switch (token.active) {
@@ -49,11 +46,9 @@ UcExpr* Parser::get_expr() {
 
 	case Lexeme::For:
 	    expr->active = UcExpr::Active::For;
-	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
-	    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);
+	    check_token(Token::Active::Lexeme, static_cast<uint64_t>(Lexeme::LParen), nullptr);
 	    expr->data.For.target = extract_val();
-	    assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
-	    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::RParen);
+	    check_token(Token::Active::Lexeme, static_cast<uint64_t>(Lexeme::RParen), nullptr);
 	    expr->data.For.stmts = extract_body();
 	    break;
 	    
@@ -74,8 +69,7 @@ UcExpr* Parser::get_expr() {
 	    expr->data.Yield = extract_val();
 	    break;
 	    
-	case Lexeme::EOS:
-	    return nullptr;
+	case Lexeme::EOS: m_stream->push_error(ErrorKind::UnexpectedEOS, "parser", m_tokenizer->get_pos()); break;
 	default: assert(false); // unreachable
 	}	
 	break;
@@ -94,9 +88,7 @@ UcExpr* Parser::get_expr() {
     default: assert(false); // unreachable
     }
 
-    token = m_tokenizer->get_next();
-    assert(token.active == Token::Active::Lexeme);
-    assert(token.data.Lexeme == Lexeme::RParen);
+    check_token(Token::Active::Lexeme, static_cast<uint64_t>(Lexeme::RParen), nullptr);
     
     return expr;
 }
@@ -195,9 +187,8 @@ UcExpr* Parser::extract_body() {
 
     while (true) {
 	if (m_tokenizer->peek_token().active == Token::Active::Lexeme
-	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen) {
+	    && m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen)
 		break;
-	}
 
 	current_node->data.List.value = get_expr();
 	current_node->data.List.next = static_cast<UcExpr*>(m_allocator->amalloc(sizeof(UcExpr)));
@@ -269,14 +260,49 @@ UcExpr* Parser::parse_function_decl() {
 
     assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
     assert(m_tokenizer->get_current().data.Lexeme == Lexeme::RType);
-
+    
     assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
     expr->data.FunctionDecl.r_type = m_tokenizer->get_current().data.Lexeme;
     
     assert(m_tokenizer->get_next().active == Token::Active::Lexeme);
-    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);
-    
+    assert(m_tokenizer->get_current().data.Lexeme == Lexeme::LParen);    
     expr->data.FunctionDecl.stmts = extract_body();
-    
+
+    check_token(Token::Active::Lexeme, static_cast<uint64_t>(Lexeme::RParen), nullptr);    
     return expr;
+}
+
+bool Parser::check_token(Token::Active tag, uint64_t enum_or_num, char* ident_or_str) {
+    auto token = m_tokenizer->get_next();
+    bool cmp = false;
+    
+    if (token.active == tag) {
+	switch (tag) {
+	case Token::Active::Lexeme: cmp = (token.data.Lexeme == static_cast<Lexeme>(enum_or_num)); break;
+	case Token::Active::Ident: cmp = (strcmp(token.data.Ident, ident_or_str) ? false : true); break;
+	case Token::Active::NumLit: cmp = (token.data.NumLit == enum_or_num); break;
+	case Token::Active::StrLit: cmp = (strcmp(token.data.StrLit, ident_or_str) ? false : true); break;
+	}
+    }
+
+    if (!cmp) {
+	if (token.active == Token::Active::Lexeme && token.data.Lexeme == Lexeme::EOS)
+	    m_stream->push_error(ErrorKind::UnexpectedEOS, "parser", m_tokenizer->get_pos());
+	else
+	    m_stream->push_error(ErrorKind::UnexpectedToken, "parser", m_tokenizer->get_pos());
+	
+	while (true) {
+	    if (m_tokenizer->peek_token().active == Token::Active::Lexeme) {
+		if (m_tokenizer->peek_token().data.Lexeme == Lexeme::RParen) {
+		    break;
+		} else if (m_tokenizer->peek_token().data.Lexeme == Lexeme::EOS) {
+		    break;
+		}
+	    }
+
+	    m_tokenizer->skip_token();
+	}
+    }
+
+    return cmp;
 }
