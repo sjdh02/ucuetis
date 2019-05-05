@@ -29,7 +29,7 @@ void deinit_arena(Arena* arena);
 
 void* amalloc(Arena* arena, size_t nmeb);
 void* acalloc(Arena* arena, size_t size, size_t nmeb);
-void afree(void* ptr);
+void afree(Arena* arena, void* ptr);
 
 BMeta* find_free_block(Arena* arena, size_t data_size);
 void insert_new_block(Arena* arena, BMeta* block);

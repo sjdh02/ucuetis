@@ -1,10 +1,13 @@
 #include <stdio.h>
 
-#include "file/file.h"
-#include "mem/arena.h"
+// TODO(sam): move arena types into alltypes? (BMeta)
+
+#include "file.h"
+#include "arena.h"
+#include "alltypes.h"
 //#include "error/error.h"
-#include "scanner/scanner.h"
-#include "parser/parser.h"
+#include "scanner.h"
+#include "parser.h"
 //#include "analyzer/analyzer.h"
 
 // TODO(sam): switch from a tokenizing parser to a streaming parser. Since each token
@@ -28,14 +31,14 @@ int main(int argc, char** argv) {
 
     Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena);
 
-    Parser parser = init_parser(tokenizer, &arena);
+    Parser* parser = init_parser(tokenizer, &arena);
 
 //    Analyzer analyzer(&parser, &arena, &stream);
 
 //    stream.report_errors();
 
     free(parser);
-    free(tokenizer);    
+    free(tokenizer);
     deinit_arena(arena);
     free(arena);
     free(result);    

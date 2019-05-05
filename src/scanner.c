@@ -275,7 +275,7 @@ Token parse_single(Tokenizer* tokenizer) {
     return token;
 }
 
-inline void skip_whitespace(Tokenizer* tokenizer) {
+void skip_whitespace(Tokenizer* tokenizer) {
     while (tokenizer->pos < tokenizer->len && tokenizer->data[tokenizer->pos] != '\n') {
 	++tokenizer->pos;
 	++tokenizer->column;
@@ -283,11 +283,11 @@ inline void skip_whitespace(Tokenizer* tokenizer) {
     }
 }
 
-inline void step_back(Tokenizer* tokenizer) {
+void step_back(Tokenizer* tokenizer) {
     tokenizer->pos -= tokenizer->last_len;
 }
 
-inline Token get_current_token(Tokenizer* tokenizer) {
+Token get_current_token(Tokenizer* tokenizer) {
     step_back(tokenizer);
     return get_token(tokenizer);
 }
@@ -298,19 +298,19 @@ Token peek_token(Tokenizer* tokenizer) {
     return token;
 }
 
-inline void skip_token(Tokenizer* tokenizer) {
+void skip_token(Tokenizer* tokenizer) {
     get_token(tokenizer);
 }
 
-inline size_t get_pos(Tokenizer* tokenizer) {
+size_t get_pos(Tokenizer* tokenizer) {
     return (((size_t)tokenizer->line) << 32 | (size_t)tokenizer->column);
 }
 
-inline bool is_at_end(Tokenizer* tokenizer) {
+bool is_at_end(Tokenizer* tokenizer) {
     return (tokenizer->pos >= tokenizer->len);
 }
 
-inline bool is_delim(char c) {
+bool is_delim(char c) {
     return (c == ';'
 	    || c == '"'
 	    || c == '\n'
@@ -325,11 +325,11 @@ inline bool is_delim(char c) {
 	    || c == ',');
 }
 
-inline bool is_digit(char c) {
+bool is_digit(char c) {
     return (c >= 48 && c <= 57);
 }
 
-inline bool is_alpha(char c) {
+bool is_alpha(char c) {
     return ((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == '_');
 }
 
