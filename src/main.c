@@ -27,18 +27,15 @@ int main(int argc, char** argv) {
     auto result = read_file(argv[1]);
 
     Arena* arena = init_arena();
-//    UcErrorStream stream;
 
     Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena);
 
-    Parser* parser = init_parser(tokenizer, &arena);
+    Parser* parser = init_parser(tokenizer, arena);
 
 //    Analyzer analyzer(&parser, &arena, &stream);
 
-//    stream.report_errors();
-
-    free(parser);
-    free(tokenizer);
+    afree(arena, parser);
+    afree(arena, tokenizer);
     deinit_arena(arena);
     free(arena);
     free(result);    

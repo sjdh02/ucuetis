@@ -1,8 +1,7 @@
 #include "arena.h"
 
 Arena* init_arena() {
-    Arena* arena = (Arena*)malloc(sizeof(Arena));
-    memset(arena->buckets, NULL, sizeof(unsigned char*) * 63);
+    Arena* arena = calloc(1, sizeof(Arena));
     arena->current_bucket = 0;
     arena->pos = 0;
     arena->block_meta = NULL;
@@ -21,7 +20,7 @@ void* amalloc(Arena* arena, size_t nmeb) {
     }
 
     if (arena->buckets[arena->current_bucket] == NULL) {
-	arena->buckets[arena->current_bucket] = (unsigned char*)malloc(sizeof(char) * BUCKET_SIZE);
+	arena->buckets[arena->current_bucket] = malloc(sizeof(char) * BUCKET_SIZE);
 	assert(arena->buckets[arena->current_bucket] != NULL);	
     }
 
@@ -45,7 +44,7 @@ void* amalloc(Arena* arena, size_t nmeb) {
 		// TODO(sam): error message here instead of an assert(false)
 		assert(false);
 	    }	    
-	    arena->buckets[arena->current_bucket] = (unsigned char*)malloc(sizeof(char) * BUCKET_SIZE);
+	    arena->buckets[arena->current_bucket] = malloc(sizeof(char) * BUCKET_SIZE);
 	    assert(arena->buckets[arena->current_bucket] != NULL);
 	}
 

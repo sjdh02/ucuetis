@@ -11,7 +11,7 @@ UcExpr* get_expr(Parser* parser) {
     if (is_at_end(parser->tokenizer))
 	return NULL;
     
-    UcExpr* expr = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
     Token token;
 
     assert(expr != NULL);
@@ -108,7 +108,7 @@ UcExpr* get_expr(Parser* parser) {
 }
 
 UcExpr* extract_val(Parser* parser) {
-    UcExpr* expr = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
     expr->active = ValueExpr;
     
     Token token = get_token(parser->tokenizer);
@@ -187,7 +187,7 @@ UcExpr* extract_val(Parser* parser) {
 }
 
 UcExpr* extract_list(Parser* parser) {
-    UcExpr* head = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
     head->active = ListExpr;
 
     UcExpr* current_node = head;
@@ -207,7 +207,7 @@ UcExpr* extract_list(Parser* parser) {
 	}
 	
 	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
 	current_node = current_node->data.list_expr.next;
     }
     
@@ -215,7 +215,7 @@ UcExpr* extract_list(Parser* parser) {
 }
 
 UcExpr* extract_body(Parser* parser) {
-    UcExpr* head = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
     head->active = ListExpr;
     
     UcExpr* current_node = head;
@@ -226,7 +226,7 @@ UcExpr* extract_body(Parser* parser) {
 		break;
 
 	current_node->data.list_expr.value = get_expr(parser);
-	current_node->data.list_expr.next = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
 	current_node = current_node->data.list_expr.next;
     }
 
@@ -234,7 +234,7 @@ UcExpr* extract_body(Parser* parser) {
 }
 
 UcExpr* parse_function_call(Parser* parser) {
-    UcExpr* head = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
     head->active = ListExpr;
     
     UcExpr* current_node = head;
@@ -252,7 +252,7 @@ UcExpr* parse_function_call(Parser* parser) {
 	
 	
 	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
 	current_node = current_node->data.list_expr.next;
     }
 
@@ -262,10 +262,10 @@ UcExpr* parse_function_call(Parser* parser) {
 UcExpr* parse_function_decl(Parser* parser) {
     assert(get_token(parser->tokenizer).active == Lexeme);
     assert(get_current_token(parser->tokenizer).data.lexeme == LParen);
-    UcExpr* expr = (UcExpr*)amalloc(parser->allocator, sizeof(UcExpr));
+    UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
     expr->active = FunctionDeclExpr;
     
-    UcArgList* head = (UcArgList*)amalloc(parser->allocator, sizeof(UcArgList));
+    UcArgList* head = amalloc(parser->allocator, sizeof(UcArgList));
     UcArgList* current_node = head;
 
     while (true) {
@@ -288,7 +288,7 @@ UcExpr* parse_function_decl(Parser* parser) {
 	assert(get_token(parser->tokenizer).active == Lexeme);
 	current_node->type = get_current_token(parser->tokenizer).data.lexeme;
 
-	current_node->next = (UcArgList*)amalloc(parser->allocator, sizeof(UcArgList));
+	current_node->next = amalloc(parser->allocator, sizeof(UcArgList));
 	current_node = current_node->next;
     }
 
@@ -314,7 +314,7 @@ bool check_token(Parser* parser, enum TokenTag tag, uint64_t enum_or_num, char* 
     
     if (token.active == tag) {
 	switch (tag) {
-	case Lexeme: cmp = (token.data.lexeme == (enum Lexeme)enum_or_num); break;
+	case Lexeme: cmp = ((uint64_t)token.data.lexeme == enum_or_num); break;
 	case Ident: cmp = (strcmp(token.data.ident, ident_or_str) ? false : true); break;
 	case NumLit: cmp = (token.data.num_lit == enum_or_num); break;
 	case StrLit: cmp = (strcmp(token.data.str_lit, ident_or_str) ? false : true); break;

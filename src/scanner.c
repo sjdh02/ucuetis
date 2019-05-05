@@ -7,7 +7,7 @@ static const char* RESERVED[] = {
 };
 
 Tokenizer* init_tokenizer(const char* data, Arena* allocator) {
-    Tokenizer* tokenizer = (Tokenizer*)malloc(sizeof(Tokenizer));
+    Tokenizer* tokenizer = amalloc(allocator, sizeof(Tokenizer));
     tokenizer->data = data;
     tokenizer->allocator = allocator;
     tokenizer->len = 0;
@@ -99,7 +99,7 @@ Token parse_ident(Tokenizer* tokenizer) {
 	++tokenizer->pos;
     }
 
-    buffer = (char*)amalloc(tokenizer->allocator, sizeof(char) * len + 1);
+    buffer = amalloc(tokenizer->allocator, sizeof(char) * len + 1);
     buffer[len] = '\0';
     strncpy(buffer, tokenizer->data + start, len);
 
@@ -155,7 +155,7 @@ Token parse_num(Tokenizer* tokenizer) {
 
     tokenizer->column += len;
 
-    buffer = (char*)(amalloc(tokenizer->allocator, sizeof(char) * len + 1));
+    buffer = amalloc(tokenizer->allocator, sizeof(char) * len + 1);
     buffer[len] = '\0';
     strncpy(buffer, tokenizer->data + start, len);
 
@@ -179,7 +179,7 @@ Token parse_str(Tokenizer* tokenizer) {
 
     tokenizer->column += len;
     
-    buffer = (char*)amalloc(tokenizer->allocator, sizeof(char) * len + 1);
+    buffer = amalloc(tokenizer->allocator, sizeof(char) * len + 1);
     buffer[len] = '\0';
 
     strncpy(buffer, tokenizer->data + start, len);
