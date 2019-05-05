@@ -18,7 +18,7 @@ char* read_file(char* path) {
 
     assert(GetFileSizeEx(file_handle, &size) != 0);
 
-    buffer = (char*)malloc(sizeof(char) * (size.QuadPart + 1));
+    buffer = malloc(sizeof(char) * (size.QuadPart + 1));
 
     ReadFile(file_handle, buffer, size.LowPart, &read, NULL);
     assert(read == size.LowPart);
@@ -42,7 +42,7 @@ char* read_file(char* path) {
     size = ftell(fp);
     rewind(fp);
 
-    buffer = (char*)malloc(sizeof(char) * (size + 1));
+    buffer = malloc(sizeof(char) * (size + 1));
     assert(fread(buffer, sizeof(char), size, fp) == size);
     assert(fclose(fp) == 0);
 
