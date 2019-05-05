@@ -153,9 +153,9 @@ UcExpr* extract_val(Parser* parser) {
 	    break;
 	}
 
-// NOTE(sam): We have to call afree in the following cases because the functions
-// that are called return pre-allocated expressions, negating the need for
-// the expression allocated in this function.	    
+       // NOTE(sam): We have to call afree in the following cases because the functions
+       // that are called return pre-allocated expressions, negating the need for
+       // the expression allocated in this function.	    
 	case LBrace: {
 	    afree(parser->allocator, expr);
 	    expr = extract_list(parser);

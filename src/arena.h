@@ -6,14 +6,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define BUCKET_SIZE 64000
+#include "alltypes.h"
 
-typedef struct {
-    struct BMeta* next;
-    size_t data_size;
-    int is_free;
-    int magic;
-} BMeta;
+#define BUCKET_SIZE 64000
 
 typedef struct {
     // NOTE(sam): Currently, there is a hard limit of 64 buckets. This gives a total

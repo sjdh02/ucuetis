@@ -1,5 +1,12 @@
 #pragma once
 
+typedef struct {
+    struct BMeta* next;
+    size_t data_size;
+    int is_free;
+    int magic;
+} BMeta;
+
 enum TokenTag {
     Lexeme, NumLit,
     StrLit, Ident,
