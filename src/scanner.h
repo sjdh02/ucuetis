@@ -8,7 +8,7 @@
 #include "arena.h"
 //#include "../error/error.h"
 
-typedef enum {
+enum Lexeme {
     // scoping characters
     LParen, RParen,
     LBracket, RBracket,
@@ -40,22 +40,22 @@ typedef enum {
     List,
 
     EOS,
-} Lexeme;
+};
 
-typedef enum {
+enum ActiveToken {
     Lexeme, NumLit,
     StrLit, Ident,
-} ActiveToken;
-
-struct Token {
-    ActiveToken active;
-    union {
-	Lexeme Lexeme;
-	uint64_t NumLit;
-	char* StrLit;
-	char* Ident;
-    } data;
 };
+
+typedef struct {
+    enum ActiveToken active;
+    union {
+	enum Lexeme lexeme;
+	uint64_t num_lit;
+	char* str_lit;
+	char* ident;
+    } data;
+} Token;
 
 typedef struct {
     const char* data;

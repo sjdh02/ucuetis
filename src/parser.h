@@ -2,22 +2,22 @@
 
 #include <assert.h>
 
-#include "../mem/arena.h"
-#include "../error/error.h"
-#include "../scanner/scanner.h"
+#include "arena.h"
+//#include "../error/error.h"
+#include "scanner.h"
 
-typedef enum {
+enum ActiveValue {
     NumLit, StrLit,
     Ident, Builtin,
-} ActiveValue;
+};
 
 struct Value {
     ActiveValue active;    
     union {
-	uint64_t NumLit;
-	char* StrLit;
-	char* Ident;
-	Lexeme Builtin;
+	enum Lexeme builtin;
+	uint64_t num_lit;
+	char* str_lit;
+	char* ident;
     } data;
 };
 

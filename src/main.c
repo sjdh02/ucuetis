@@ -7,10 +7,13 @@
 #include "parser/parser.h"
 //#include "analyzer/analyzer.h"
 
-// TODO(sam): Switch from a tokenizing parser to a streaming parser. Since each token
+// TODO(sam): switch from a tokenizing parser to a streaming parser. Since each token
 // can be stored in its char form (or char* form if its a string/ident/longer single token (in the last case (e.g. yield) we could use
 // and enum)), it would be smaller and simpler to just have the parser take in each token and deal with it, I'd think. At the very
 // least, the tokenizer would only need to deal with basic symbols and do a lot less parsing.
+
+// since void* is automatically promoted to any type, there are a lot of redundant casts throughout
+// the codebase. 
 
 int main(int argc, char** argv) {
     if (argc < 2) {

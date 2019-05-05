@@ -22,8 +22,8 @@ Tokenizer* init_tokenizer(const char* data, Arena* allocator) {
 Token get_token(Tokenizer* tokenizer) {
     if (is_at_end(tokenizer)) {
 	Token token;
-	token.active = ActiveToken.Lexeme;
-	token.data.Lexeme = Lexeme.EOS;
+	token.active = Lexeme;
+	token.data.lexeme = EOS;
 	tokenizer->last_len = 0;
 	
 	return token;
@@ -62,18 +62,18 @@ Token get_token(Tokenizer* tokenizer) {
 
     case '#':
 	skip_whitespace(tokenizer);
-	return get_next(tokenizer);
+	return get_token(tokenizer);
 
     case ' ':
 	++tokenizer->pos;
 	++tokenizer->column;
-	return get_next(tokenizer);
+	return get_token(tokenizer);
 
     case '\n':
 	++tokenizer->pos;
 	++tokenizer->line;
 	tokenizer->column = 0;
-	return get_next(tokenizer);
+	return get_token(tokenizer);
 
     default:
 	if (is_digit(tokenizer->data[tokenizer->pos]))
@@ -83,13 +83,12 @@ Token get_token(Tokenizer* tokenizer) {
 	else
 //	    tokenizer->stream->push_error(ErrorKind::UnknownCharacter, "tokenizer", get_pos(tokenizer));
 	    ++tokenizer->pos;
-	    return get_next(tokenizer);
+	    return get_token(tokenizer);
     }
 }
 
 Token parse_ident(Tokenizer* tokenizer) {
     Token token;
-    token.active = ActiveToken.Ident;
     bool matched = false;
     size_t start = tokenizer->pos;
     int len = 0;
@@ -107,34 +106,36 @@ Token parse_ident(Tokenizer* tokenizer) {
     for (size_t i = 0; i < 18; ++i) {
 	if (strcmp(buffer, RESERVED[i]) == 0) {
 	    matched = true;
-	    tokenizer->allocator->afree(buffer);
-	    token.active = ActiveToken.Lexeme;
+	    afree(tokenizer->allocator, buffer);
+	    token.active = Lexeme;
 	    switch (i) {
-	    case 0: token.data.Lexeme = Lexeme.Fn; break;
-	    case 1: token.data.Lexeme = Lexeme.For; break;
-	    case 2: token.data.Lexeme = Lexeme.While; break;
-	    case 3: token.data.Lexeme = Lexeme.If; break;
-	    case 4: token.data.Lexeme = Lexeme.Else; break;
-	    case 5: token.data.Lexeme = Lexeme.True; break;
-	    case 6: token.data.Lexeme = Lexeme.False; break;
-	    case 7: token.data.Lexeme = Lexeme.Out; break;
-	    case 8: token.data.Lexeme = Lexeme.In; break;
-	    case 9: token.data.Lexeme = Lexeme.ErrOut; break;
-	    case 10: token.data.Lexeme = Lexeme.Num; break;
-	    case 11: token.data.Lexeme = Lexeme.Str; break;
-	    case 12: token.data.Lexeme = Lexeme.List; break;
-	    case 13: token.data.Lexeme = Lexeme.It; break;
-	    case 14: token.data.Lexeme = Lexeme.Yield; break;
-	    case 15: token.data.Lexeme = Lexeme.Loop; break;
-	    case 16: token.data.Lexeme = Lexeme.Break; break;
-	    case 17: token.data.Lexeme = Lexeme.Assign; break;
+	    case 0: token.data.lexeme = Fn; break;
+	    case 1: token.data.lexeme = For; break;
+	    case 2: token.data.lexeme = While; break;
+	    case 3: token.data.lexeme = If; break;
+	    case 4: token.data.lexeme = Else; break;
+	    case 5: token.data.lexeme = True; break;
+	    case 6: token.data.lexeme = False; break;
+	    case 7: token.data.lexeme = Out; break;
+	    case 8: token.data.lexeme = In; break;
+	    case 9: token.data.lexeme = ErrOut; break;
+	    case 10: token.data.lexeme = Num; break;
+	    case 11: token.data.lexeme = Str; break;
+	    case 12: token.data.lexeme = List; break;
+	    case 13: token.data.lexeme = It; break;
+	    case 14: token.data.lexeme = Yield; break;
+	    case 15: token.data.lexeme = Loop; break;
+	    case 16: token.data.lexeme = Break; break;
+	    case 17: token.data.lexeme = Assign; break;
 	    default: assert(false); // unreachable
 	    }
 	}
     }
 
-    if (!matched)
-	token.data.Ident = buffer;
+    if (!matched) {
+	token.active = Ident;
+	token.data.ident = buffer;
+    }
 	
     tokenizer->last_len = len;
     return token;
@@ -142,7 +143,7 @@ Token parse_ident(Tokenizer* tokenizer) {
 
 Token parse_num(Tokenizer* tokenizer) {
     Token token;
-    token.active = ActiveToken.NumLit;
+    token.active = NumLit;
     size_t start = tokenizer->pos;
     int len = 0;
     char* buffer;
@@ -158,15 +159,15 @@ Token parse_num(Tokenizer* tokenizer) {
     buffer[len] = '\0';
     strncpy(buffer, tokenizer->data + start, len);
 
-    token.data.NumLit = (uint64_t)strtoul(buffer, nullptr, 10);
+    token.data.num_lit = (uint64_t)strtoul(buffer, NULL, 10);
     tokenizer->last_len = len;
-    tokenizer->allocator->afree(buffer);
+    afree(tokenizer->allocator, buffer);
     return token;
 }
 
 Token parse_str(Tokenizer* tokenizer) {
     Token token;
-    token.active = ActiveToken.StrLit;
+    token.active = StrLit;
     size_t start = tokenizer->pos;
     int len = 0;
     char* buffer;
@@ -183,7 +184,7 @@ Token parse_str(Tokenizer* tokenizer) {
 
     strncpy(buffer, tokenizer->data + start, len);
 
-    token.data.StrLit = buffer;
+    token.data.str_lit = buffer;
     tokenizer->last_len = len;
     return token;
 }
@@ -194,44 +195,44 @@ Token parse_multi(Tokenizer* tokenizer) {
     }
     
     Token token;
-    token.active = ActiveToken.Lexeme;
+    token.active = Lexeme;
     char next = tokenizer->data[tokenizer->pos + 1];
     
     switch (tokenizer->data[tokenizer->pos]) {
     case '!':
 	if (next == '=')
-	    token.data.Lexeme = Lexeme.Neq;
+	    token.data.lexeme = Neq;
 	else
-	    token.data.Lexeme = Lexeme.Bang;
+	    token.data.lexeme = Bang;
 	break;
     case '<':
 	if (next == '>')
-	    token.data.Lexeme = Lexeme.Pipe;
+	    token.data.lexeme = Pipe;
 	else if (next =='=')
-	    token.data.Lexeme = Lexeme.LtOrEq;
+	    token.data.lexeme = LtOrEq;
 	else
-	    token.data.Lexeme = Lexeme.Lt;
+	    token.data.lexeme = Lt;
 	break;
     case '>':
 	if (next == '=')
-	    token.data.Lexeme = Lexeme.GtOrEq;
+	    token.data.lexeme = GtOrEq;
 	else
-	    token.data.Lexeme = Lexeme.Gt;
+	    token.data.lexeme = Gt;
 	break;
     case '=':
 	if (next == '>')
-	    token.data.Lexeme = Lexeme.RType;
+	    token.data.lexeme = RType;
 	else
-	    token.data.Lexeme = Lexeme.Eq;
+	    token.data.lexeme = Eq;
 	break;
     default: assert(false); // unreachable
     }
 
-    switch (token.data.Lexeme) {
-    case Lexeme.Eq:
-    case Lexeme.Gt:
-    case Lexeme.Lt:
-    case Lexeme.Bang:
+    switch (token.data.lexeme) {
+    case Eq:
+    case Gt:
+    case Lt:
+    case Bang:
 	++tokenizer->pos;
 	++tokenizer->column;
 	tokenizer->last_len = 1;
@@ -248,25 +249,25 @@ Token parse_multi(Tokenizer* tokenizer) {
 
 Token parse_single(Tokenizer* tokenizer) {
     Token token;
-    token.active = ActiveToken.Lexeme;
+    token.active = Lexeme;
     tokenizer->last_len = 1;
 
     switch (tokenizer->data[tokenizer->pos]) {
-    case '(': token.data.Lexeme = Lexeme.LParen; break;
-    case ')': token.data.Lexeme = Lexeme.RParen; break;
-    case '[': token.data.Lexeme = Lexeme.LBracket; break;
-    case ']': token.data.Lexeme = Lexeme.RBracket; break;
-    case '{': token.data.Lexeme = Lexeme.LBrace; break;
-    case '}': token.data.Lexeme = Lexeme.RBrace; break;
-    case '+': token.data.Lexeme = Lexeme.Plus; break;
-    case '-': token.data.Lexeme = Lexeme.Minus; break;
-    case '*': token.data.Lexeme = Lexeme.Mul; break;
-    case '/': token.data.Lexeme = Lexeme.Div; break;
-    case ';': token.data.Lexeme = Lexeme.Semicolon; break;
-    case '|': token.data.Lexeme = Lexeme.Bar; break;
-    case ':': token.data.Lexeme = Lexeme.Colon; break;
-    case ',': token.data.Lexeme = Lexeme.Comma; break;
-    case '.': token.data.Lexeme = Lexeme.Dot; break;
+    case '(': token.data.lexeme = LParen; break;
+    case ')': token.data.lexeme = RParen; break;
+    case '[': token.data.lexeme = LBracket; break;
+    case ']': token.data.lexeme = RBracket; break;
+    case '{': token.data.lexeme = LBrace; break;
+    case '}': token.data.lexeme = RBrace; break;
+    case '+': token.data.lexeme = Plus; break;
+    case '-': token.data.lexeme = Minus; break;
+    case '*': token.data.lexeme = Mul; break;
+    case '/': token.data.lexeme = Div; break;
+    case ';': token.data.lexeme = Semicolon; break;
+    case '|': token.data.lexeme = Bar; break;
+    case ':': token.data.lexeme = Colon; break;
+    case ',': token.data.lexeme = Comma; break;
+    case '.': token.data.lexeme = Dot; break;
     default: assert(false); // unreachable
     }
 
@@ -288,17 +289,17 @@ inline void step_back(Tokenizer* tokenizer) {
 
 inline Token get_current_token(Tokenizer* tokenizer) {
     step_back(tokenizer);
-    return get_next(tokenizer);
+    return get_token(tokenizer);
 }
 
 Token peek_token(Tokenizer* tokenizer) {
-    auto token = get_next(tokenizer);
+    Token token = get_token(tokenizer);
     step_back(tokenizer);
     return token;
 }
 
 inline void skip_token(Tokenizer* tokenizer) {
-    get_next(tokenizer);
+    get_token(tokenizer);
 }
 
 inline size_t get_pos(Tokenizer* tokenizer) {
