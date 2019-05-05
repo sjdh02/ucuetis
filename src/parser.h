@@ -1,16 +1,18 @@
 #pragma once
 
-#include <cassert>
+#include <assert.h>
 
-#include "../mem/arena.hpp"
-#include "../error/error.hpp"
-#include "../scanner/scanner.hpp"
+#include "../mem/arena.h"
+#include "../error/error.h"
+#include "../scanner/scanner.h"
+
+typedef enum {
+    NumLit, StrLit,
+    Ident, Builtin,
+} ActiveValue;
 
 struct Value {
-    enum class Active { NumLit, StrLit, Ident, Builtin };
-    
-    Active active;
-    
+    ActiveValue active;    
     union {
 	uint64_t NumLit;
 	char* StrLit;
@@ -19,25 +21,24 @@ struct Value {
     } data;
 };
 
-struct UcArgList {
-    UcArgList* next;
+typedef struct {
+    struct UcArgList* next;
     char* ident;
     Lexeme type;
-};
+} UcArgList;
 
-struct UcExpr {
-    enum class Active {
-	Value, Assign,
-	List, Boolean,
-	Math, Pipe,
-	If, While,
-	For, Yield,
-	FunctionDecl, FunctionCall,
-	BadExpr,
-    };
-    
-    Active active;
-    
+typedef enum {
+    Value, Assign,
+    List, Boolean,
+    Math, Pipe,
+    If, While,
+    For, Yield,
+    FunctionDecl, FunctionCall,
+    BadExpr,    
+} ActiveExpr;
+
+typedef struct {
+    ActiveExpr active;    
     union {
 	Value Value;
 
@@ -47,8 +48,8 @@ struct UcExpr {
 	 * to assign (almost) anything to an identifier. 
 	 */
 	struct {
-	    UcExpr* ident;
-	    UcExpr* value;
+	    struct UcExpr* ident;
+	    struct UcExpr* value;
 	} Assign;
 
 	/* 
@@ -56,8 +57,8 @@ struct UcExpr {
 	 * position n and a pointer to the value of the list at n + 1. 
 	 */
 	struct {
-	    UcExpr* next;
-	    UcExpr* value;
+	    struct UcExpr* next;
+	    struct UcExpr* value;
 	} List;
 
 	/*
@@ -66,8 +67,8 @@ struct UcExpr {
 	 */
 	struct {
 	    Lexeme op;
-	    UcExpr* lhs;
-	    UcExpr* rhs;
+	    struct UcExpr* lhs;
+	    struct UcExpr* rhs;
 	} Boolean;
 
 	/*
@@ -75,16 +76,16 @@ struct UcExpr {
 	 */
 	struct {
 	    Lexeme op;
-	    UcExpr* lhs;
-	    UcExpr* rhs;
+	    struct UcExpr* lhs;
+	    struct UcExpr* rhs;
 	} Math;
 
 	/*
 	 * A pipe expression simply consists of a destination and source.
 	 */
 	struct {
-	    UcExpr* dest;
-	    UcExpr* source;
+	    struct UcExpr* dest;
+	    struct UcExpr* source;
 	} Pipe;
 
 	/*
@@ -93,37 +94,37 @@ struct UcExpr {
 	 * the concept.
 	 */
 	struct {
-	    UcExpr* cond;
-	    UcExpr* stmts;
+	    struct UcExpr* cond;
+	    struct UcExpr* stmts;
 	} If;
 
 	/*
 	 * The only difference between a while expression and if expression: behavior.
 	 */
 	struct {
-	    UcExpr* cond;
-	    UcExpr* stmts;
+	    struct UcExpr* cond;
+	    struct UcExpr* stmts;
 	} While;
 
 	/*
 	 * A for expression consists of an iteration target, and a list of statements that make up the body.
 	 */
 	struct {
-	    UcExpr* target;
-	    UcExpr* stmts;
+	    struct UcExpr* target;
+	    struct UcExpr* stmts;
 	} For;
 
 	/*
 	 * A yield expression is extrememly basic, as it only consists of a expression to return from the current scope.
 	 */
-	UcExpr* Yield;
+	struct UcExpr* Yield;
 
 	/*
 	 * A function defintion contains a return type, arguments list, and list of statements in the body.
 	 */
 	struct {
 	    UcArgList* args;
-	    UcExpr* stmts;
+	    struct UcExpr* stmts;
 	    Lexeme r_type;
 	} FunctionDecl;
 
@@ -132,26 +133,24 @@ struct UcExpr {
 	 */
 	struct {
 	    char* ident;
-	    UcExpr* args;
+	    struct UcExpr* args;
 	} FunctionCall;
     } data;
-};
+} UcExpr;
 
-class Parser {
-    Tokenizer* m_tokenizer;
-    UcMemArena* m_allocator;
-    UcErrorStream* m_stream;
-    UcExpr* extract_val();
-    UcExpr* extract_body();
-    UcExpr* extract_list();
-    UcExpr* parse_function_call();
-    UcExpr* parse_function_decl();
-    // NOTE(sam) @HACK: This is a *really* hacky way to take arguments for this, but it does work.
-    bool check_token(Token::Active tag, uint64_t enum_or_num, char* ident_or_str);
-public:
-    Parser(Tokenizer* p_tokenizer, UcMemArena* p_allocator, UcErrorStream* p_stream) :
-	m_tokenizer(p_tokenizer), m_allocator(p_allocator), m_stream(p_stream) {};
-    
-    UcExpr* get_expr();
-    ~Parser() = default;
-};
+typedef struct {
+    Tokenizer* tokenizer;
+    Arena* allocator;
+//    ErrorStream* estream; TODO(sam)    
+} Parser;
+
+Parser* init_parser(Tokenizer* tokenizer, Arena* allocator);
+
+UcExpr* extract_val(Parser* parser);
+UcExpr* extract_body(Parser* parser);
+UcExpr* extract_list(Parser* parser);
+UcExpr* parse_function_call(Parser* parser);
+UcExpr* parse_function_decl(Parser* parser);
+
+// NOTE(sam) @HACK: This is a *really* hacky way to take arguments for this, but it does work.
+bool check_token(ActiveToken tag, uint64_t enum_or_num, char* ident_or_str);

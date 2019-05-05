@@ -1,4 +1,4 @@
-#include "file.hpp"
+#include "file.h"
 
 #ifdef _WIN64
 char* read_file(char* path) {
@@ -10,19 +10,19 @@ char* read_file(char* path) {
     file_handle = CreateFileA(path,
 			      GENERIC_READ,
 			      FILE_SHARE_READ,
-			      nullptr,
+			      NULL,
 			      OPEN_EXISTING,
 			      FILE_ATTRIBUTE_NORMAL,
-			      nullptr);
+			      NULL);
     assert(file_handle != INVALID_HANDLE_VALUE);
 
     assert(GetFileSizeEx(file_handle, &size) != 0);
 
-    buffer = static_cast<char*>(malloc(sizeof(char) * (size.QuadPart + 1)));
+    buffer = (char*)malloc(sizeof(char) * (size.QuadPart + 1));
 
-    ReadFile(file_handle, buffer, size.LowPart, &read, nullptr);
+    ReadFile(file_handle, buffer, size.LowPart, &read, NULL);
     assert(read == size.LowPart);
-    ReadFile(file_handle, &buffer[size.LowPart], size.HighPart, &read, nullptr);
+    ReadFile(file_handle, &buffer[size.LowPart], size.HighPart, &read, NULL);
     assert(read == size.HighPart);
 
     CloseHandle(file_handle);
@@ -36,13 +36,13 @@ char* read_file(char* path) {
     char* buffer;
 
     fp = fopen(path, "r");
-    assert(fp != nullptr);
+    assert(fp != NULL);
 
     assert(fseek(fp, 0, SEEK_END) == 0);
     size = ftell(fp);
     rewind(fp);
 
-    buffer = static_cast<char*>(malloc(sizeof(char) * (size + 1)));
+    buffer = (char*)malloc(sizeof(char) * (size + 1));
     assert(fread(buffer, sizeof(char), size, fp) == size);
     assert(fclose(fp) == 0);
 

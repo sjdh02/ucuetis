@@ -1,0 +1,40 @@
+#include <stdio.h>
+
+#include "file/file.h"
+#include "mem/arena.h"
+//#include "error/error.h"
+#include "scanner/scanner.h"
+#include "parser/parser.h"
+//#include "analyzer/analyzer.h"
+
+// TODO(sam): Switch from a tokenizing parser to a streaming parser. Since each token
+// can be stored in its char form (or char* form if its a string/ident/longer single token (in the last case (e.g. yield) we could use
+// and enum)), it would be smaller and simpler to just have the parser take in each token and deal with it, I'd think. At the very
+// least, the tokenizer would only need to deal with basic symbols and do a lot less parsing.
+
+int main(int argc, char** argv) {
+    if (argc < 2) {
+	printf("provide at least one source file.\n");
+	return -1;
+    }
+    
+    auto result = read_file(argv[1]);
+
+    Arena* arena = init_arena();
+//    UcErrorStream stream;
+
+    Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena);
+
+    Parser parser = init_parser(tokenizer, &arena);
+
+//    Analyzer analyzer(&parser, &arena, &stream);
+
+//    stream.report_errors();
+
+    free(parser);
+    free(tokenizer);    
+    deinit_arena(arena);
+    free(arena);
+    free(result);    
+    return 0;
+}
