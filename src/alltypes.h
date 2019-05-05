@@ -1,11 +1,11 @@
 #pragma once
 
-typedef struct {
+struct BMeta {
     struct BMeta* next;
     size_t data_size;
     int is_free;
     int magic;
-} BMeta;
+};
 
 enum TokenTag {
     Lexeme, NumLit,
@@ -46,7 +46,7 @@ enum Lexeme {
     EOS,
 };
 
-typedef struct {
+struct Token {
     enum TokenTag active;
     union {
 	enum Lexeme lexeme;
@@ -54,9 +54,9 @@ typedef struct {
 	char* str_lit;
 	char* ident;
     } data;
-} Token;
+};
 
-typedef struct {
+struct Value {
     enum TokenTag active;    
     union {
 	enum Lexeme builtin;
@@ -64,13 +64,13 @@ typedef struct {
 	char* str_lit;
 	char* ident;
     } data;
-} Value;
+};
 
-typedef struct {
+struct UcArgList {
     struct UcArgList* next;
     char* ident;
     enum Lexeme type;
-} UcArgList;
+};
 
 enum ExprTag {
     ValueExpr, AssignExpr,
@@ -82,10 +82,10 @@ enum ExprTag {
     BadExpr,
 };
 
-typedef struct {
+struct UcExpr {
     enum ExprTag active;    
     union {
-	Value value;
+	struct Value value;
 
 	/*
 	 * Assign expressions consist of an assignment identifier, and a value to place in it. This value can be
@@ -168,7 +168,7 @@ typedef struct {
 	 * A function defintion contains a return type, arguments list, and list of statements in the body.
 	 */
 	struct {
-	    UcArgList* args;
+	    struct UcArgList* args;
 	    struct UcExpr* stmts;
 	    enum Lexeme r_type;
 	} function_decl_expr;
@@ -181,5 +181,11 @@ typedef struct {
 	    struct UcExpr* args;
 	} function_call_expr;
     } data;
-} UcExpr;
+};
+
+typedef struct BMeta BMeta;
+typedef struct Token Token;
+typedef struct Value Value;
+typedef struct UcArgList UcArgList;
+typedef struct UcExpr UcExpr;
 

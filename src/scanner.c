@@ -6,13 +6,13 @@ static const char* RESERVED[] = {
     "list", "it", "yield", "loop", "break", "defn",
 };
 
-Tokenizer* init_tokenizer(const char* data, Arena* allocator) {
+Tokenizer* init_tokenizer(char* data, Arena* allocator) {
     Tokenizer* tokenizer = amalloc(allocator, sizeof(Tokenizer));
     tokenizer->data = data;
     tokenizer->allocator = allocator;
-    tokenizer->len = 0;
+    tokenizer->len = strlen(data);
     tokenizer->pos = 0;
-    tokenizer->line = 0;
+    tokenizer->line = 1;
     tokenizer->column = 0;
     tokenizer->last_len = 0;
 

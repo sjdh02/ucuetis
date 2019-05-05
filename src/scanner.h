@@ -10,7 +10,7 @@
 //#include "../error/error.h"
 
 typedef struct {
-    const char* data;
+    char* data;
     Arena* allocator;
     //ErrorSTream* estream; TODO(sam)
     uint32_t len;

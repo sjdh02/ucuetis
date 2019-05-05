@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
 	printf("provide at least one source file.\n");
 	return -1;
     }
-    
-    auto result = read_file(argv[1]);
+		
+    char* result = read_file(argv[1]);
 
     Arena* arena = init_arena();
 
