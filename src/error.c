@@ -1,5 +1,11 @@
 #include "error.h"
 
+ErrorStream* init_estream(Arena* allocator) {
+    ErrorStream* estream = amalloc(allocator, sizeof(ErrorStream));
+    estream->current_error = 0;
+    return estream;
+}
+
 void push_error(ErrorStream* estream, enum ErrorKind kind, char* module, size_t pos) {
     int line = (pos >> 32);
     int column = (pos << 32) >> 32;

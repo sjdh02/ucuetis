@@ -4,17 +4,17 @@
 
 #include "arena.h"
 #include "alltypes.h"
-//#include "../error/error.h"
+#include "error.h"
 #include "scanner.h"
 
 
 typedef struct {
     Tokenizer* tokenizer;
     Arena* allocator;
-//    ErrorStream* estream; TODO(sam)    
+    ErrorStream* estream;
 } Parser;
 
-Parser* init_parser(Tokenizer* tokenizer, Arena* allocator);
+Parser* init_parser(Tokenizer* tokenizer, Arena* allocator, ErrorStream* estream);
 
 struct UcExpr* get_expr(Parser* parser);
 struct UcExpr* extract_val(Parser* parser);

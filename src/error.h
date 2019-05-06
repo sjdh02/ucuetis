@@ -12,7 +12,7 @@ typedef struct {
     size_t current_error;
 } ErrorStream;
 
-ErrorStream* init_estream();
+ErrorStream* init_estream(Arena* allocator);
 
 void push_error(ErrorStream* estream, enum ErrorKind kind, char* module, size_t pos);
 char* pop_error(ErrorStream* estream);

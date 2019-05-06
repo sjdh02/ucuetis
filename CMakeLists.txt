@@ -28,6 +28,7 @@ add_library(parser src/parser.c)
 
 add_executable(ucuetis src/main.c)
 
+target_link_libraries(error arena)
 target_link_libraries(scanner arena error)
 target_link_libraries(parser scanner error arena error)
 #target_link_libraries(analyzer parser error arena)

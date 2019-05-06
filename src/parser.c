@@ -1,9 +1,10 @@
 #include "parser.h"
 
-Parser* init_parser(Tokenizer* tokenizer, Arena* allocator) {
+Parser* init_parser(Tokenizer* tokenizer, Arena* allocator, ErrorStream* estream) {
     Parser* parser = amalloc(allocator, sizeof(Parser));
     parser->tokenizer = tokenizer;
     parser->allocator = allocator;
+    parser->estream = estream;
     return parser;
 }
 
@@ -82,8 +83,7 @@ UcExpr* get_expr(Parser* parser) {
 	    break;
 	}
 	    
-//	case EOS: m_stream->push_error(ErrorKind::UnexpectedEOS, "parser", m_tokenizer->get_pos()); break;
-	case EOS:
+	case EOS: push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer)); break;
 	default: assert(false); // unreachable
 	}	
 	break;
@@ -322,12 +322,11 @@ bool check_token(Parser* parser, enum TypeTag tag, uint64_t enum_or_num, char* i
     }
 
     if (!cmp) {
-	/* Pending error stream rework
 	if (token.active == Lexeme && token.data.lexeme == EOS)
-	    m_stream->push_error(ErrorKind::UnexpectedEOS, "parser", m_tokenizer->get_pos(parser));
+	    push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer));
 	else
-	    m_stream->push_error(ErrorKind::UnexpectedToken, "parser", m_tokenizer->get_pos(parser));
-	*/
+	    push_error(parser->estream, UnexpectedToken, "parser", get_pos(parser->tokenizer));
+
 	while (true) {
 	    if (peek_token(parser->tokenizer).active == Lexeme) {
 		if (peek_token(parser->tokenizer).data.lexeme == RParen) {
