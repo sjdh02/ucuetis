@@ -28,9 +28,10 @@ int main(int argc, char** argv) {
     Tokenizer* tokenizer = init_tokenizer("(defn x 200)", arena, estream);
     Parser* parser = init_parser(tokenizer, arena, estream);
     Analyzer* analyzer = init_analyzer(parser, arena, estream);
-    
-    report_errors(estream);
 
+    analyze(analyzer);
+    report_errors(estream);
+    
     afree(arena, analyzer);
     afree(arena, parser);
     afree(arena, tokenizer);

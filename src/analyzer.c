@@ -5,7 +5,11 @@ Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream) 
     analyzer->allocator = allocator;
     analyzer->estream = estream;
     analyzer->symbol_table = amalloc(analyzer->allocator, sizeof(Symbol) * 10);
-    analyzer->pos = 0;
+    analyzer->st_pos = 0;
+    analyzer->st_len = 10;
     
     return analyzer;
+}
+
+void analyze(Analyzer* analyzer) {
 }

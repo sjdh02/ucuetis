@@ -10,9 +10,9 @@ typedef struct {
     Arena* allocator;
     ErrorStream* estream;
     Symbol** symbol_table;
-    size_t pos;
+    size_t st_pos;
+    size_t st_len;
 } Analyzer;
 
 Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream);
-
-
+void analyze(Analyzer* analyzer);
