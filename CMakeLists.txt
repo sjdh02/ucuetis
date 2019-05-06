@@ -15,7 +15,7 @@ else(BUILD_RELEASE)
   if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /DEBUG:FASTLINK")
   else(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wall -g")
   endif(MSVC)
 endif(BUILD_RELEASE)
 
