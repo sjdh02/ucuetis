@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 typedef struct BMeta BMeta;
 typedef struct Token Token;
 typedef struct Value Value;

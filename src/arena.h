@@ -1,11 +1,9 @@
 #pragma once
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
-
 #include "alltypes.h"
 
 #define BUCKET_SIZE 64000

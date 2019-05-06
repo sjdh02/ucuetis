@@ -11,7 +11,7 @@ Tokenizer* init_tokenizer(char* data, Arena* allocator, ErrorStream* estream) {
     tokenizer->data = data;
     tokenizer->allocator = allocator;
     tokenizer->estream = estream;
-    tokenizer->len = strlen(data);
+    tokenizer->len = (uint32_t)strlen(data);
     tokenizer->pos = 0;
     tokenizer->line = 1;
     tokenizer->column = 0;

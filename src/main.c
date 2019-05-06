@@ -1,9 +1,9 @@
 #include <stdio.h>
 
+#include "alltypes.h"
 #include "file.h"
 #include "error.h"
 #include "arena.h"
-#include "alltypes.h"
 #include "scanner.h"
 #include "parser.h"
 //#include "analyzer/analyzer.h"
@@ -23,6 +23,8 @@ int main(int argc, char** argv) {
     Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena, estream);
     Parser* parser = init_parser(tokenizer, arena, estream);
 
+    UcExpr* expr = get_expr(parser);
+    
     report_errors(estream);
     
     afree(arena, parser);

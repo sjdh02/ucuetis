@@ -4,9 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-
-#include "arena.h"
 #include "alltypes.h"
+#include "arena.h"
 #include "error.h"
 
 typedef struct {

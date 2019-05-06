@@ -1,9 +1,8 @@
 #pragma once
 
 #include <assert.h>
-
-#include "arena.h"
 #include "alltypes.h"
+#include "arena.h"
 #include "error.h"
 #include "scanner.h"
 
@@ -24,4 +23,5 @@ struct UcExpr* parse_function_call(Parser* parser);
 struct UcExpr* parse_function_decl(Parser* parser);
 
 // NOTE(sam) @HACK: This is a *really* hacky way to take arguments for this, but it does work.
-bool check_token(Parser* parser, enum TypeTag tag, uint64_t enum_or_num, char* ident_or_str);
+bool check_token(Parser* parser, Token token, enum TypeTag tag, uint64_t enum_or_num);
+bool check_tag(Parser* parser, Token token, enum TypeTag tag);
