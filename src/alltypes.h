@@ -6,6 +6,12 @@ typedef struct Value Value;
 typedef struct UcArgList UcArgList;
 typedef struct UcExpr UcExpr;
 
+enum ErrorKind {
+    UnknownCharacter,
+    UnexpectedToken,
+    UnexpectedEOS,    
+};
+
 enum TypeTag {
     Lexeme, NumLit,
     StrLit, Ident,
