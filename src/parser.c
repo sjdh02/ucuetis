@@ -84,7 +84,7 @@ UcExpr* get_expr(Parser* parser) {
 	}
 	    
 	case EOS: push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer)); break;
-	default: assert(0); // @Warning: this is not actually unreachable! further indication that these supposed "unreachable" cases should really emit errors instead of killing off the whole compiler.
+	default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
 	}	
 	break;
 
@@ -99,7 +99,7 @@ UcExpr* get_expr(Parser* parser) {
     case NumLit:
     case StrLit:
 	// This should print an error instead of being marked as unreachable.
-    default: assert(false); // unreachable
+    default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
     }
 
     check_token(parser, get_token(parser->tokenizer), Lexeme, RParen);
@@ -338,9 +338,9 @@ bool check_token(Parser* parser, Token token, enum TypeTag tag, uint64_t enum_or
 
     if (!cmp) {
 	if (token.active == Lexeme && token.data.lexeme == EOS)
-	    push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedEOS, "parser/check_token", get_pos(parser->tokenizer));
 	else
-	    push_error(parser->estream, UnexpectedToken, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedToken, "parser/check_token", get_pos(parser->tokenizer));
 
 	while (true) {
 	    if (peek_token(parser->tokenizer).active == Lexeme) {
@@ -361,9 +361,9 @@ bool check_token(Parser* parser, Token token, enum TypeTag tag, uint64_t enum_or
 bool check_tag(Parser* parser, Token token, enum TypeTag tag) {
     if (token.active != tag) {
 	if (token.active == Lexeme && token.data.lexeme == EOS)
-	    push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedEOS, "parser/check_tag", get_pos(parser->tokenizer));
 	else
-	    push_error(parser->estream, UnexpectedToken, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedToken, "parser/check_tag", get_pos(parser->tokenizer));
 	
 	while (true) {
 	    if (peek_token(parser->tokenizer).active == Lexeme) {

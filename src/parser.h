@@ -6,7 +6,6 @@
 #include "error.h"
 #include "scanner.h"
 
-
 typedef struct {
     Tokenizer* tokenizer;
     Arena* allocator;

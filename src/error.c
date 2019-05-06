@@ -28,7 +28,7 @@ void push_error(ErrorStream* estream, enum ErrorKind kind, char* module, size_t 
     case UnexpectedEOS:
 	snprintf(estream->errors[estream->current_error],
 		 MAX_ERR_LEN,
-		 "(%s) error: unexpected end-of-stream at %d:%d. perhaps you forgot a closing ')'?\n",
+		 "(%s) error: unexpected end-of-stream at %d:%d\n",
 		 module, line, column);
 	break;
     }
