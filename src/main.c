@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 #include "file.h"
+#include "error.h"
 #include "arena.h"
 #include "alltypes.h"
-//#include "error/error.h"
 #include "scanner.h"
 #include "parser.h"
 //#include "analyzer/analyzer.h"
@@ -15,17 +15,19 @@ int main(int argc, char** argv) {
     }
 		
     char* result = read_file(argv[1]);
-
     Arena* arena = init_arena();
+    ErrorStream* estream = init_estream(arena);
+    // NOTE(sam): This is handing out two pointers to the error stream, to both the tokenizer and parser.
+    // This should be fine for single-threaded code, but if multithreading is added, push_error and pop_error
+    // would need to be mutexed.
+    Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena, estream);
+    Parser* parser = init_parser(tokenizer, arena, estream);
 
-    Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ( (+ a b) ) )", arena);
-
-    Parser* parser = init_parser(tokenizer, arena);
-
-//    Analyzer analyzer(&parser, &arena, &stream);
-
+    report_errors(estream);
+    
     afree(arena, parser);
     afree(arena, tokenizer);
+    afree(arena, estream);
     deinit_arena(arena);
     free(arena);
     free(result);    

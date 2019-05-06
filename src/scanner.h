@@ -7,12 +7,12 @@
 
 #include "arena.h"
 #include "alltypes.h"
-//#include "../error/error.h"
+#include "error.h"
 
 typedef struct {
     char* data;
     Arena* allocator;
-    //ErrorSTream* estream; TODO(sam)
+    ErrorStream* estream;
     uint32_t len;
     uint32_t pos;
     uint32_t line;
@@ -20,7 +20,7 @@ typedef struct {
     uint32_t last_len;
 } Tokenizer;
 
-Tokenizer* init_tokenizer();
+Tokenizer* init_tokenizer(char* data, Arena* allocator, ErrorStream* estream);
 
 Token get_token(Tokenizer* tokenizer);
 Token get_current_token(Tokenizer* tokenizer);

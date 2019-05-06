@@ -1,44 +1,50 @@
-#include "error.hpp"
+#include "error.h"
 
-void UcErrorStream::push_error(ErrorKind kind, char* module, size_t pos) {
+ErrorStream* init_estream(Arena* allocator) {
+    ErrorStream* estream = amalloc(allocator, sizeof(ErrorStream));
+    estream->current_error = 0;
+    return estream;
+}
+
+void push_error(ErrorStream* estream, enum ErrorKind kind, char* module, size_t pos) {
     int line = (pos >> 32);
     int column = (pos << 32) >> 32;
         
     switch (kind) {
-    case ErrorKind::UnknownCharacter:
-	snprintf(m_errors[m_current_error],
+    case UnknownCharacter:
+	snprintf(estream->errors[estream->current_error],
 		 MAX_ERR_LEN,
 		 "(%s) error: unknown character at %d:%d\n",
 		 module, line, column);
 	break;
 	
-    case ErrorKind::UnexpectedToken:
-	snprintf(m_errors[m_current_error],
+    case UnexpectedToken:
+	snprintf(estream->errors[estream->current_error],
 		 MAX_ERR_LEN,
 		 "(%s) error: unexpected token at %d:%d\n",
 		 module, line, column);
 	break;
 	
-    case ErrorKind::UnexpectedEOS:
-	snprintf(m_errors[m_current_error],
+    case UnexpectedEOS:
+	snprintf(estream->errors[estream->current_error],
 		 MAX_ERR_LEN,
 		 "(%s) error: unexpected end-of-stream at %d:%d. perhaps you forgot a closing ')'?\n",
 		 module, line, column);
 	break;
     }
 
-    ++m_current_error;
+    ++estream->current_error;
 }
 
-char* UcErrorStream::pop_error() {
-    if (m_current_error == 0)
-	return "\0";
+char* pop_error(ErrorStream* estream) {
+    if (estream->current_error == 0)
+	return NULL;
 
-    --m_current_error;
-    return m_errors[m_current_error];
+    --estream->current_error;
+    return estream->errors[estream->current_error];
 }
 
-void UcErrorStream::report_errors() {
-    while (m_current_error != 0)
-	printf("%s\n", pop_error());
+void report_errors(ErrorStream* estream) {
+    while (estream->current_error != 0)
+	printf("%s\n", pop_error(estream));
 }

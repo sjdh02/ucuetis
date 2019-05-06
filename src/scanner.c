@@ -6,10 +6,11 @@ static const char* RESERVED[] = {
     "list", "it", "yield", "loop", "break", "defn",
 };
 
-Tokenizer* init_tokenizer(char* data, Arena* allocator) {
+Tokenizer* init_tokenizer(char* data, Arena* allocator, ErrorStream* estream) {
     Tokenizer* tokenizer = amalloc(allocator, sizeof(Tokenizer));
     tokenizer->data = data;
     tokenizer->allocator = allocator;
+    tokenizer->estream = estream;
     tokenizer->len = strlen(data);
     tokenizer->pos = 0;
     tokenizer->line = 1;
@@ -81,7 +82,7 @@ Token get_token(Tokenizer* tokenizer) {
 	else if (is_alpha(tokenizer->data[tokenizer->pos]))
 	    return parse_ident(tokenizer);
 	else
-//	    tokenizer->stream->push_error(ErrorKind::UnknownCharacter, "tokenizer", get_pos(tokenizer));
+	    push_error(tokenizer->estream, UnknownCharacter, "tokenizer", get_pos(tokenizer));
 	    ++tokenizer->pos;
 	    return get_token(tokenizer);
     }

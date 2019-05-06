@@ -1,37 +1,41 @@
 #pragma once
 
-struct BMeta {
-    struct BMeta* next;
-    size_t data_size;
-    int is_free;
-    int magic;
+typedef struct BMeta BMeta;
+typedef struct Token Token;
+typedef struct Value Value;
+typedef struct UcArgList UcArgList;
+typedef struct UcExpr UcExpr;
+
+enum ErrorKind {
+    UnknownCharacter,
+    UnexpectedToken,
+    UnexpectedEOS,    
 };
 
-enum TokenTag {
+enum TypeTag {
     Lexeme, NumLit,
     StrLit, Ident,
 };
 
 enum Lexeme {
-    // scoping characters
     LParen, RParen,
     LBracket, RBracket,
     LBrace, RBrace,
-    // comparisons
+
     Lt, Gt,
     Eq, Bang,
-    // math operators
+
     Plus, Minus,
     Div, Mul,
-    // delimiters
+
     Semicolon, Colon,
     Bar, Comma,
     Dot,
-    // require peeking
+
     Assign, Pipe,
     LtOrEq, GtOrEq,
     Neq, RType,
-    // reserved keywords
+
     Out, In,
     ErrOut, If,
     Else, While,
@@ -39,37 +43,11 @@ enum Lexeme {
     True, False,
     It, Yield,
     Loop, Break,
-    // types
+
     Num, Str,
     List,
 
     EOS,
-};
-
-struct Token {
-    enum TokenTag active;
-    union {
-	enum Lexeme lexeme;
-	uint64_t num_lit;
-	char* str_lit;
-	char* ident;
-    } data;
-};
-
-struct Value {
-    enum TokenTag active;    
-    union {
-	enum Lexeme builtin;
-	uint64_t num_lit;
-	char* str_lit;
-	char* ident;
-    } data;
-};
-
-struct UcArgList {
-    struct UcArgList* next;
-    char* ident;
-    enum Lexeme type;
 };
 
 enum ExprTag {
@@ -82,110 +60,97 @@ enum ExprTag {
     BadExpr,
 };
 
-struct UcExpr {
-    enum ExprTag active;    
+struct BMeta {
+    BMeta* next;
+    size_t data_size;
+    int is_free;
+    int magic;
+};
+
+struct Token {
+    enum TypeTag active;
     union {
-	struct Value value;
-
-	/*
-	 * Assign expressions consist of an assignment identifier, and a value to place in it. This value can be
-	 * any expression, which allows for both the function definition syntax of ucuetis as well as the ability
-	 * to assign (almost) anything to an identifier. 
-	 */
-	struct {
-	    struct UcExpr* ident;
-	    struct UcExpr* value;
-	} assign_expr;
-
-	/* 
-	 * Lists are easily represented as a singly-linked list, with each node holding the value of the list at
-	 * position n and a pointer to the value of the list at n + 1. 
-	 */
-	struct {
-	    struct UcExpr* next;
-	    struct UcExpr* value;
-	} list_expr;
-
-	/*
-	 * Boolean expressions simply contain their operators and operands. As with most other types, they take two
-	 * UcExpr as operands.
-	 */
-	struct {
-	    enum Lexeme op;
-	    struct UcExpr* lhs;
-	    struct UcExpr* rhs;
-	} boolean_expr;
-
-	/*
-	 * Math expressions are defined in the same manner as boolean expressions.
-	 */
-	struct {
-	    enum Lexeme op;
-	    struct UcExpr* lhs;
-	    struct UcExpr* rhs;
-	} math_expr;
-
-	/*
-	 * A pipe expression simply consists of a destination and source.
-	 */
-	struct {
-	    struct UcExpr* dest;
-	    struct UcExpr* source;
-	} pipe_expr;
-
-	/*
-	 * An if expression is a conditional (this *should always* be a Boolean expression) and some statements that
-	 * make up the body. These are represented with the List expression type, as it lends itself quite well to
-	 * the concept.
-	 */
-	struct {
-	    struct UcExpr* cond;
-	    struct UcExpr* stmts;
-	} if_expr;
-
-	/*
-	 * The only difference between a while expression and if expression: behavior.
-	 */
-	struct {
-	    struct UcExpr* cond;
-	    struct UcExpr* stmts;
-	} while_expr;
-
-	/*
-	 * A for expression consists of an iteration target, and a list of statements that make up the body.
-	 */
-	struct {
-	    struct UcExpr* target;
-	    struct UcExpr* stmts;
-	} for_expr;
-
-	/*
-	 * A yield expression is extrememly basic, as it only consists of a expression to return from the current scope.
-	 */
-	struct UcExpr* yield_expr;
-
-	/*
-	 * A function defintion contains a return type, arguments list, and list of statements in the body.
-	 */
-	struct {
-	    struct UcArgList* args;
-	    struct UcExpr* stmts;
-	    enum Lexeme r_type;
-	} function_decl_expr;
-
-	/*
-	 * A function call needs a target function identifier and list of arguments.
-	 */
-	struct {
-	    char* ident;
-	    struct UcExpr* args;
-	} function_call_expr;
+	enum Lexeme lexeme;
+	uint64_t num_lit;
+	char* str_lit;
+	char* ident;
     } data;
 };
 
-typedef struct BMeta BMeta;
-typedef struct Token Token;
-typedef struct Value Value;
-typedef struct UcArgList UcArgList;
-typedef struct UcExpr UcExpr;
+struct Value {
+    enum TypeTag active;    
+    union {
+	enum Lexeme builtin;
+	uint64_t num_lit;
+	char* str_lit;
+	char* ident;
+    } data;
+};
+
+struct UcArgList {
+    UcArgList* next;
+    char* ident;
+    enum Lexeme type;
+};
+
+struct UcExpr {
+    enum ExprTag active;    
+    union {
+	Value value;
+
+	struct {
+	    UcExpr* ident;
+	    UcExpr* value;
+	} assign_expr;
+
+	struct {
+	    UcExpr* next;
+	    UcExpr* value;
+	} list_expr;
+
+	struct {
+	    enum Lexeme op;
+	    UcExpr* lhs;
+	    UcExpr* rhs;
+	} boolean_expr;
+
+	struct {
+	    enum Lexeme op;
+	    UcExpr* lhs;
+	    UcExpr* rhs;
+	} math_expr;
+	struct {
+	    UcExpr* dest;
+	    UcExpr* source;
+	} pipe_expr;
+
+	struct {
+	    UcExpr* cond;
+	    UcExpr* stmts;
+	} if_expr;
+
+	struct {
+	    UcExpr* cond;
+	    UcExpr* stmts;
+	} while_expr;
+
+	struct {
+	    UcExpr* target;
+	    UcExpr* stmts;
+	} for_expr;
+
+	UcExpr* yield_expr;
+
+	struct {
+	    UcArgList* args;
+	    UcExpr* stmts;
+	    enum Lexeme r_type;
+	} function_decl_expr;
+
+	struct {
+	    char* ident;
+	    UcExpr* args;
+	} function_call_expr;
+    } data;
+};
 
