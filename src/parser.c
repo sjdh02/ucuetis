@@ -308,7 +308,7 @@ UcExpr* parse_function_decl(Parser* parser) {
     return expr;
 }
 
-bool check_token(Parser* parser, enum TokenTag tag, uint64_t enum_or_num, char* ident_or_str) {
+bool check_token(Parser* parser, enum TypeTag tag, uint64_t enum_or_num, char* ident_or_str) {
     Token token = get_token(parser->tokenizer);
     bool cmp = false;
     
