@@ -21,7 +21,7 @@ UcExpr* get_expr(Parser* parser) {
     token = get_token(parser->tokenizer);
     
     switch (token.active) {
-    case Lexeme:
+    case Lexeme: {
 	switch (token.data.lexeme) {
 	case Assign: {
 	    expr->active = AssignExpr;
@@ -85,10 +85,12 @@ UcExpr* get_expr(Parser* parser) {
 	    
 	case EOS: push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer)); break;
 	default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
-	}	
+	}
+	
 	break;
+    }
 
-    case Ident:
+    case Ident: {
 	if (get_token(parser->tokenizer).active == Lexeme
 	    && get_current_token(parser->tokenizer).data.lexeme == LBracket) {
 	    expr->active = FunctionCallExpr;
@@ -96,9 +98,10 @@ UcExpr* get_expr(Parser* parser) {
 	    expr->data.function_call_expr.args = parse_function_call(parser);
 	    break;
 	}
+    }
+	
     case NumLit:
     case StrLit:
-	// This should print an error instead of being marked as unreachable.
     default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
     }
 
@@ -137,7 +140,7 @@ UcExpr* extract_val(Parser* parser) {
 	break;
     }
 
-    case Lexeme:
+    case Lexeme: {
 	switch (token.data.lexeme) {
 	case Out:
 	case In:
@@ -173,13 +176,14 @@ UcExpr* extract_val(Parser* parser) {
 	    expr = parse_function_decl(parser);
 	    break;
 	}
-	    // This should print an error
+
 	default: assert(false);
 	}
-	   
+
 	break;
-	
-    default: assert(false); // unreachable
+    }
+
+    default: assert(false);
     }
 
     return expr;
@@ -215,7 +219,7 @@ UcExpr* extract_list(Parser* parser) {
 
 UcExpr* extract_body(Parser* parser) {
     UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;    
+    head->active = ListExpr;
     UcExpr* current_node = head;
 
     while (true) {
@@ -239,7 +243,7 @@ UcExpr* extract_body(Parser* parser) {
 
 UcExpr* parse_function_call(Parser* parser) {
     UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;    
+    head->active = ListExpr;
     UcExpr* current_node = head;
 
     while (true) {
@@ -250,8 +254,11 @@ UcExpr* parse_function_call(Parser* parser) {
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
 		continue;
-	    } else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
-		push_error(parser->estream, UnexpectedEOS, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
+	    } else {
+		if (peek_token(parser->tokenizer).data.lexeme == EOS)
+		    push_error(parser->estream, UnexpectedEOS, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
+		else
+		    push_error(parser->estream, UnexpectedToken, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
 		head = NULL;
 		break;
 	    }
@@ -283,10 +290,12 @@ UcExpr* parse_function_decl(Parser* parser) {
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
 		continue;
-	    } else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
-		push_error(parser->estream, UnexpectedEOS, "parser/parse_function_decl/arg_loop", get_pos(parser->tokenizer));
-		head = NULL;
-		break;
+	    } else {
+		if (peek_token(parser->tokenizer).data.lexeme == EOS)
+		    push_error(parser->estream, UnexpectedEOS, "parser/parse_function_decl/arg_loop", get_pos(parser->tokenizer));
+		else
+		    push_error(parser->estream, UnexpectedToken, "parser/parse_function_decl/arg_loop", get_pos(parser->tokenizer));
+		syntaxOk = false;
 	    }
 	}
 
