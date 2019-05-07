@@ -198,6 +198,7 @@ UcExpr* extract_list(Parser* parser) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RBrace) {
 		skip_token(parser->tokenizer);
+		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
@@ -225,6 +226,7 @@ UcExpr* extract_body(Parser* parser) {
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RParen) {
+		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
 		push_error(parser->estream, UnexpectedEOS, "parser/extract_body/body_loop", get_pos(parser->tokenizer));
@@ -250,6 +252,7 @@ UcExpr* parse_function_call(Parser* parser) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RBracket) {
 		skip_token(parser->tokenizer);
+		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
@@ -286,6 +289,7 @@ UcExpr* parse_function_decl(Parser* parser) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RParen) {
 		skip_token(parser->tokenizer);
+		current_node->next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);

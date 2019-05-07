@@ -159,11 +159,7 @@ struct UcExpr {
 };
 
 struct Symbol {
+    UcExpr* sym_expr;
     char* ident;
     size_t scope_level;
-    // NOTE(sam): in the case of things like function arguments, the type can just
-    // be inherited from the function_call_expr/function_decl_expr arg list types.
-    // otherwise, the type will need to be deduced (which should be easy, given that
-    // there are a whopping three base types).
-    enum TypeTag type;
 };

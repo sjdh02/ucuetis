@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "alltypes.h"
 #include "parser.h"
 #include "arena.h"
@@ -16,3 +17,4 @@ typedef struct {
 
 Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream);
 void analyze(Analyzer* analyzer);
+void build_symbol_table(Analyzer* analyzer);
