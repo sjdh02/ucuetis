@@ -13,6 +13,7 @@ Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream) 
 }
 
 void analyze(Analyzer* analyzer) {
+    size_t scope_level = 0;
     build_symbol_table(analyzer);
 }
 
@@ -20,26 +21,58 @@ void analyze(Analyzer* analyzer) {
 // scope level of the arg. that way, it can just stay in the symbol table
 // without ever matching in any other scope.
 
+// TODO(sam): rework this to support nested function decls.
+
 void build_symbol_table(Analyzer* analyzer) {
     UcExpr* expr = get_expr(analyzer->parser);
     size_t scope_level = 0;
 
-
-    while (expr != NULL) {
+    while (expr) {
 	if (expr->active == AssignExpr && expr->data.assign_expr.value->active == ValueExpr) {
-	    Symbol sym = {.sym_expr = expr, .ident = expr->data.assign_expr.ident->data.value.data.ident, .scope_level = scope_level};
-	    
+	    Symbol sym;
+	    sym.ident = expr->data.assign_expr.ident->data.value.data.ident;
+	    sym.scope_level = scope_level;
+	    sym.isArg = false;
+	    sym.sym_expr = expr;
 	    analyzer->symbol_table[analyzer->st_pos] = sym;
-	    ++analyzer->st_pos;
 	} else if (expr->active == FunctionDeclExpr) {
+	    UcArgList* current_arg = expr->data.function_decl_expr.args;
+	    UcExpr* current_stmt = expr->data.function_decl_expr.stmts;	    
 	    ++scope_level;
-	    
-	    UcArgList* current_node = expr->data.function_decl_expr.args;
 
-	    while (current_node != NULL) {
-		// TODO(sam): iterate over each node of the function_decl_expr args until NULL
-		// and add them to the symbol table.
-	    }	  	    
+	    while (current_arg) {
+		Symbol sym;
+		sym.ident = current_arg->ident;
+		sym.scope_level = scope_level;
+		sym.isArg = true;
+		sym.sym_expr = NULL;
+		analyzer->symbol_table[analyzer->st_pos] = sym;		
+
+		if (++analyzer->st_pos >= analyzer->st_len) {
+		    // TODO(sam): write arealloc
+		    break;
+		}
+
+		current_arg = current_arg->next;
+	    }
+	    
+	    while (current_stmt) {
+		if (expr->active == AssignExpr && expr->data.assign_expr.value->active == ValueExpr) {
+		    Symbol sym;
+		    sym.ident = expr->data.assign_expr.ident->data.value.data.ident;
+		    sym.scope_level = scope_level;
+		    sym.isArg = false;
+		    sym.sym_expr = expr;
+		    analyzer->symbol_table[analyzer->st_pos] = sym;
+		}
+		
+		if (++analyzer->st_pos >= analyzer->st_len) {
+		    // TODO(sam): write arealloc
+		    break;
+		}
+
+		current_stmt = current_stmt->data.list_expr.next;
+	    }
 	    --scope_level;
 	}
 
@@ -47,5 +80,7 @@ void build_symbol_table(Analyzer* analyzer) {
 	    // TODO(sam): write arealloc
 	    break;
 	}
+
+	expr = get_expr(analyzer->parser);
     }
 }

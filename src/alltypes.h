@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct BMeta BMeta;
 typedef struct Token Token;
@@ -159,7 +160,8 @@ struct UcExpr {
 };
 
 struct Symbol {
-    UcExpr* sym_expr;
     char* ident;
     size_t scope_level;
+    bool isArg;
+    UcExpr* sym_expr;
 };
