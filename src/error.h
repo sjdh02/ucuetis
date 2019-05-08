@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdio.h>
-#include "arena.h"
 #include "alltypes.h"
+#include "arena.h"
 
 #define MAX_ERR 64
 #define MAX_ERR_LEN 128

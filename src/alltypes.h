@@ -1,10 +1,15 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef struct BMeta BMeta;
 typedef struct Token Token;
 typedef struct Value Value;
-typedef struct UcArgList UcArgList;
+typedef struct UcArg UcArg;
 typedef struct UcExpr UcExpr;
+typedef struct Symbol Symbol;
 
 enum ErrorKind {
     UnknownCharacter,
@@ -87,8 +92,7 @@ struct Value {
     } data;
 };
 
-struct UcArgList {
-    UcArgList* next;
+struct UcArg {
     char* ident;
     enum Lexeme type;
 };
@@ -103,11 +107,8 @@ struct UcExpr {
 	    UcExpr* value;
 	} assign_expr;
 
-	struct {
-	    UcExpr* next;
-	    UcExpr* value;
-	} list_expr;
-
+	UcExpr** list_expr;
+	
 	struct {
 	    enum Lexeme op;
 	    UcExpr* lhs;
@@ -142,7 +143,7 @@ struct UcExpr {
 	UcExpr* yield_expr;
 
 	struct {
-	    UcArgList* args;
+	    UcArg* args;
 	    UcExpr* stmts;
 	    enum Lexeme r_type;
 	} function_decl_expr;
@@ -154,3 +155,9 @@ struct UcExpr {
     } data;
 };
 
+struct Symbol {
+    char* ident;
+    size_t scope_level;
+    bool isArg;
+    UcExpr* sym_expr;
+};

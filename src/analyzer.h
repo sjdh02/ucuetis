@@ -1,16 +1,20 @@
 #pragma once
 
-#include "../parser/parser.hpp"
-#include "../mem/arena.hpp"
-#include "../error/error.hpp"
+#include <assert.h>
+#include "alltypes.h"
+#include "parser.h"
+#include "arena.h"
+#include "error.h"
 
-class Analyzer {
-    Parser* m_parser;
-    UcMemArena* m_allocator;
-    UcErrorStream* m_stream;
-public:
-    Analyzer(Parser* p_parser, UcMemArena* p_allocator, UcErrorStream* p_stream) :
-	m_parser(p_parser), m_allocator(p_allocator), m_stream(p_stream) {};
-    
-    ~Analyzer() = default;
-};
+typedef struct {
+    Parser* parser;
+    Arena* allocator;
+    ErrorStream* estream;
+    Symbol* symbol_table;
+    size_t st_pos;
+    size_t st_len;
+} Analyzer;
+
+Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream);
+void analyze(Analyzer* analyzer);
+void build_symbol_table(Analyzer* analyzer);

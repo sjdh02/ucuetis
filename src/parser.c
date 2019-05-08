@@ -17,11 +17,11 @@ UcExpr* get_expr(Parser* parser) {
 
     assert(expr != NULL);
 
-    check_token(parser, Lexeme, (uint64_t)LParen, NULL);
+    check_token(parser, get_token(parser->tokenizer), Lexeme, LParen);
     token = get_token(parser->tokenizer);
     
     switch (token.active) {
-    case Lexeme:
+    case Lexeme: {
 	switch (token.data.lexeme) {
 	case Assign: {
 	    expr->active = AssignExpr;
@@ -57,9 +57,9 @@ UcExpr* get_expr(Parser* parser) {
 
 	case For: {
 	    expr->active = ForExpr;
-	    check_token(parser, Lexeme, (uint64_t)LParen, NULL);
+	    check_token(parser, get_token(parser->tokenizer), Lexeme, LParen);
 	    expr->data.for_expr.target = extract_val(parser);
-	    check_token(parser, Lexeme, (uint64_t)RParen, NULL);
+	    check_token(parser, get_token(parser->tokenizer), Lexeme, RParen);
 	    expr->data.for_expr.stmts = extract_body(parser);
 	    break;
 	}
@@ -84,11 +84,13 @@ UcExpr* get_expr(Parser* parser) {
 	}
 	    
 	case EOS: push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer)); break;
-	default: assert(false); // unreachable
-	}	
+	default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
+	}
+	
 	break;
+    }
 
-    case Ident:
+    case Ident: {
 	if (get_token(parser->tokenizer).active == Lexeme
 	    && get_current_token(parser->tokenizer).data.lexeme == LBracket) {
 	    expr->active = FunctionCallExpr;
@@ -96,21 +98,21 @@ UcExpr* get_expr(Parser* parser) {
 	    expr->data.function_call_expr.args = parse_function_call(parser);
 	    break;
 	}
+    }
+	
     case NumLit:
     case StrLit:
-	// This should print an error instead of being marked as unreachable.
-    default: assert(false); // unreachable
+    default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
     }
 
-    check_token(parser, Lexeme, (uint64_t)RParen, NULL);
+    check_token(parser, get_token(parser->tokenizer), Lexeme, RParen);
     
     return expr;
 }
 
 UcExpr* extract_val(Parser* parser) {
     UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
-    expr->active = ValueExpr;
-    
+    expr->active = ValueExpr;    
     Token token = get_token(parser->tokenizer);
     
     switch (token.active) {
@@ -138,7 +140,7 @@ UcExpr* extract_val(Parser* parser) {
 	break;
     }
 
-    case Lexeme:
+    case Lexeme: {
 	switch (token.data.lexeme) {
 	case Out:
 	case In:
@@ -174,23 +176,25 @@ UcExpr* extract_val(Parser* parser) {
 	    expr = parse_function_decl(parser);
 	    break;
 	}
-	    // This should print an error
+
 	default: assert(false);
 	}
-	   
+
 	break;
-	
-    default: assert(false); // unreachable
+    }
+
+    default: assert(false);
     }
 
     return expr;
 }
 
 UcExpr* extract_list(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
     
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
@@ -201,43 +205,60 @@ UcExpr* extract_list(Parser* parser) {
 		skip_token(parser->tokenizer);
 		continue;
 	    } else {
-		// This should print an error about an unexpected token
-		assert(false);
+		push_error(parser->estream, UnexpectedToken, "parser/extract_list/body_loop", get_pos(parser->tokenizer));
+		list = NULL;
+		break;
 	    }
 	}
-	
-	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
-    
-    return head;
+
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* extract_body(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-    
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
 
     while (true) {
-	if (peek_token(parser->tokenizer).active == Lexeme
-	    && peek_token(parser->tokenizer).data.lexeme == RParen)
+	if (peek_token(parser->tokenizer).active == Lexeme) {
+	    if (peek_token(parser->tokenizer).data.lexeme == RParen) {
 		break;
+	    } else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
+		push_error(parser->estream, UnexpectedEOS, "parser/extract_body/body_loop", get_pos(parser->tokenizer));
+		list = NULL;
+		break;
+	    }
+	}
 
-	current_node->data.list_expr.value = get_expr(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
 
-    return head;
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* parse_function_call(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-    
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
 
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
@@ -247,26 +268,38 @@ UcExpr* parse_function_call(Parser* parser) {
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
 		continue;
+	    } else {
+		if (peek_token(parser->tokenizer).data.lexeme == EOS)
+		    push_error(parser->estream, UnexpectedEOS, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
+		else
+		    push_error(parser->estream, UnexpectedToken, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
+		list = NULL;
+		break;
 	    }
 	}
+
 	
-	
-	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
 
-    return head;
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* parse_function_decl(Parser* parser) {
-    assert(get_token(parser->tokenizer).active == Lexeme);
-    assert(get_current_token(parser->tokenizer).data.lexeme == LParen);
     UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
     expr->active = FunctionDeclExpr;
-    
-    UcArgList* head = amalloc(parser->allocator, sizeof(UcArgList));
-    UcArgList* current_node = head;
+    expr->data.function_decl_expr.args = amalloc(parser->allocator, sizeof(UcArg) * 11);
+    size_t len = 10;
+    size_t pos = 0;
+    bool syntaxOk = true;
+
+    check_token(parser, get_token(parser->tokenizer), Lexeme, LParen);
 
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
@@ -276,56 +309,68 @@ UcExpr* parse_function_decl(Parser* parser) {
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
 		continue;
+	    } else {
+		if (peek_token(parser->tokenizer).data.lexeme == EOS)
+		    push_error(parser->estream, UnexpectedEOS, "parser/parse_function_decl/arg_loop", get_pos(parser->tokenizer));
+		else
+		    push_error(parser->estream, UnexpectedToken, "parser/parse_function_decl/arg_loop", get_pos(parser->tokenizer));
+		syntaxOk = false;
 	    }
 	}
 
-	assert(get_token(parser->tokenizer).active == Ident);
-	current_node->ident = get_current_token(parser->tokenizer).data.ident;
+	if (!syntaxOk) {
+	    expr->data.function_decl_expr.args = NULL;
+	    break;
+	}
+	
+	syntaxOk = check_tag(parser, get_token(parser->tokenizer), Ident);
+	expr->data.function_decl_expr.args[pos].ident = get_current_token(parser->tokenizer).data.ident;
 
-	assert(get_token(parser->tokenizer).active == Lexeme);
-	assert(get_current_token(parser->tokenizer).data.lexeme == Colon);
+	syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, Colon);
 
-	assert(get_token(parser->tokenizer).active == Lexeme);
-	current_node->type = get_current_token(parser->tokenizer).data.lexeme;
+	syntaxOk = check_tag(parser, get_token(parser->tokenizer), Lexeme);
+	expr->data.function_decl_expr.args[pos].type = get_current_token(parser->tokenizer).data.lexeme;
 
-	current_node->next = amalloc(parser->allocator, sizeof(UcArgList));
-	current_node = current_node->next;
+	if (++pos >= len) {
+	    len *= 2;
+	    expr->data.function_decl_expr.args = arealloc(parser->allocator, expr->data.function_decl_expr.args, len);
+	}
     }
 
-    expr->data.function_decl_expr.args = head;
-
-    assert(get_token(parser->tokenizer).active == Lexeme);
-    assert(get_current_token(parser->tokenizer).data.lexeme == RType);
+    expr->data.function_decl_expr.args[pos].type = EOS;
     
-    assert(get_token(parser->tokenizer).active == Lexeme);
+    syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, RType);
+
+    syntaxOk = check_tag(parser, get_token(parser->tokenizer), Lexeme);
     expr->data.function_decl_expr.r_type = get_current_token(parser->tokenizer).data.lexeme;
     
-    assert(get_token(parser->tokenizer).active == Lexeme);
-    assert(get_current_token(parser->tokenizer).data.lexeme == LParen);    
+    syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, LParen);
     expr->data.function_decl_expr.stmts = extract_body(parser);
 
-    check_token(parser, Lexeme, (uint64_t)RParen, NULL);    
-    return expr;
+    syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, RParen);
+
+    if (syntaxOk)
+	return expr;
+    else
+	return NULL;
 }
 
-bool check_token(Parser* parser, enum TypeTag tag, uint64_t enum_or_num, char* ident_or_str) {
-    Token token = get_token(parser->tokenizer);
+bool check_token(Parser* parser, Token token, enum TypeTag tag, uint64_t enum_or_num) {
     bool cmp = false;
     
     if (token.active == tag) {
 	switch (tag) {
-	case Lexeme: cmp = ((uint64_t)token.data.lexeme == enum_or_num); break;
-	case Ident: cmp = (strcmp(token.data.ident, ident_or_str) ? false : true); break;
+	case Lexeme: cmp = (token.data.lexeme == enum_or_num); break;
 	case NumLit: cmp = (token.data.num_lit == enum_or_num); break;
-	case StrLit: cmp = (strcmp(token.data.str_lit, ident_or_str) ? false : true); break;
+	default: assert(0); // unreachable
 	}
     }
 
     if (!cmp) {
 	if (token.active == Lexeme && token.data.lexeme == EOS)
-	    push_error(parser->estream, UnexpectedEOS, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedEOS, "parser/check_token", get_pos(parser->tokenizer));
 	else
-	    push_error(parser->estream, UnexpectedToken, "parser", get_pos(parser->tokenizer));
+	    push_error(parser->estream, UnexpectedToken, "parser/check_token", get_pos(parser->tokenizer));
 
 	while (true) {
 	    if (peek_token(parser->tokenizer).active == Lexeme) {
@@ -341,4 +386,29 @@ bool check_token(Parser* parser, enum TypeTag tag, uint64_t enum_or_num, char* i
     }
 
     return cmp;
+}
+
+bool check_tag(Parser* parser, Token token, enum TypeTag tag) {
+    if (token.active != tag) {
+	if (token.active == Lexeme && token.data.lexeme == EOS)
+	    push_error(parser->estream, UnexpectedEOS, "parser/check_tag", get_pos(parser->tokenizer));
+	else
+	    push_error(parser->estream, UnexpectedToken, "parser/check_tag", get_pos(parser->tokenizer));
+	
+	while (true) {
+	    if (peek_token(parser->tokenizer).active == Lexeme) {
+		if (peek_token(parser->tokenizer).data.lexeme == RParen) {
+		    break;
+		} else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
+		    break;
+		}
+	    }
+	    
+	    skip_token(parser->tokenizer);
+	}
+
+	return false;
+    }
+
+    return true;
 }

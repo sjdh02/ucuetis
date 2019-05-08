@@ -1,11 +1,9 @@
 #pragma once
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
-
 #include "alltypes.h"
 
 #define BUCKET_SIZE 64000
@@ -24,6 +22,7 @@ void deinit_arena(Arena* arena);
 
 void* amalloc(Arena* arena, size_t nmeb);
 void* acalloc(Arena* arena, size_t size, size_t nmeb);
+void* arealloc(Arena* arena, void* ptr, size_t nmeb);
 void afree(Arena* arena, void* ptr);
 
 BMeta* find_free_block(Arena* arena, size_t data_size);
