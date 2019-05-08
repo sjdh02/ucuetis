@@ -17,17 +17,13 @@ void analyze(Analyzer* analyzer) {
     build_symbol_table(analyzer);
 }
 
-// NOTE(sam): for dealing with function call arguments, simply increment the
-// scope level of the arg. that way, it can just stay in the symbol table
-// without ever matching in any other scope.
-
 // TODO(sam): rework this to support nested function decls.
 
 void build_symbol_table(Analyzer* analyzer) {
     UcExpr* expr = get_expr(analyzer->parser);
     size_t scope_level = 0;
 
-    while (expr) {
+    while (expr != NULL) {
 	if (expr->active == AssignExpr && expr->data.assign_expr.value->active == ValueExpr) {
 	    Symbol sym;
 	    sym.ident = expr->data.assign_expr.ident->data.value.data.ident;
@@ -35,31 +31,31 @@ void build_symbol_table(Analyzer* analyzer) {
 	    sym.isArg = false;
 	    sym.sym_expr = expr;
 	    analyzer->symbol_table[analyzer->st_pos] = sym;
-	} else if (expr->active == FunctionDeclExpr) {
-	    UcArgList* current_arg = expr->data.function_decl_expr.args;
-	    UcExpr* current_stmt = expr->data.function_decl_expr.stmts;	    
+	} else if (expr->active == AssignExpr && expr->data.assign_expr.value->active == FunctionDeclExpr) {
+	    UcArg* args_arr = expr->data.assign_expr.value->data.function_decl_expr.args;
+	    UcExpr** stmts_arr = expr->data.assign_expr.value->data.function_decl_expr.stmts->data.list_expr;
 	    ++scope_level;
-
-	    while (current_arg) {
+	    
+	    while (args_arr->type != EOS) {
 		Symbol sym;
-		sym.ident = current_arg->ident;
+		sym.ident = args_arr->ident;
 		sym.scope_level = scope_level;
 		sym.isArg = true;
 		sym.sym_expr = NULL;
-		analyzer->symbol_table[analyzer->st_pos] = sym;		
+		analyzer->symbol_table[analyzer->st_pos] = sym;
 
 		if (++analyzer->st_pos >= analyzer->st_len) {
 		    analyzer->st_len *= 2;
 		    analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol) * analyzer->st_len);
-		}
-
-		current_arg = current_arg->next;
+		}		
+		
+		++args_arr;
 	    }
-	    
-	    while (current_stmt) {
-		if (expr->active == AssignExpr && expr->data.assign_expr.value->active == ValueExpr) {
+
+	    while (*stmts_arr) {
+		if ((*stmts_arr)->active == AssignExpr && (*stmts_arr)->data.assign_expr.value->active == ValueExpr) {
 		    Symbol sym;
-		    sym.ident = expr->data.assign_expr.ident->data.value.data.ident;
+		    sym.ident = (*stmts_arr)->data.assign_expr.ident->data.value.data.ident;
 		    sym.scope_level = scope_level;
 		    sym.isArg = false;
 		    sym.sym_expr = expr;
@@ -71,8 +67,9 @@ void build_symbol_table(Analyzer* analyzer) {
 		    analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol) * analyzer->st_len);
 		}
 
-		current_stmt = current_stmt->data.list_expr.next;
+		++stmts_arr;
 	    }
+	    
 	    --scope_level;
 	}
 

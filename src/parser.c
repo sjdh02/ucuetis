@@ -190,69 +190,80 @@ UcExpr* extract_val(Parser* parser) {
 }
 
 UcExpr* extract_list(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
     
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RBrace) {
 		skip_token(parser->tokenizer);
-		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
 		continue;
 	    } else {
 		push_error(parser->estream, UnexpectedToken, "parser/extract_list/body_loop", get_pos(parser->tokenizer));
-		head = NULL;
+		list = NULL;
 		break;
 	    }
 	}
-	
-	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
-    
-    return head;
+
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* extract_body(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
 
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RParen) {
-		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == EOS) {
 		push_error(parser->estream, UnexpectedEOS, "parser/extract_body/body_loop", get_pos(parser->tokenizer));
-		head = NULL;
+		list = NULL;
 		break;
 	    }
 	}
 
-	current_node->data.list_expr.value = get_expr(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
 
-    return head;
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* parse_function_call(Parser* parser) {
-    UcExpr* head = amalloc(parser->allocator, sizeof(UcExpr));
-    head->active = ListExpr;
-    UcExpr* current_node = head;
+    UcExpr* list = amalloc(parser->allocator, sizeof(UcExpr));
+    list->active = ListExpr;
+    list->data.list_expr = amalloc(parser->allocator, sizeof(UcExpr) * 11);
+    size_t len = 10;
+    size_t pos = 0;
 
     while (true) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RBracket) {
 		skip_token(parser->tokenizer);
-		current_node->data.list_expr.next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
@@ -262,25 +273,30 @@ UcExpr* parse_function_call(Parser* parser) {
 		    push_error(parser->estream, UnexpectedEOS, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
 		else
 		    push_error(parser->estream, UnexpectedToken, "parser/parse_function_call/arg_loop", get_pos(parser->tokenizer));
-		head = NULL;
+		list = NULL;
 		break;
 	    }
 	}
+
 	
-	
-	current_node->data.list_expr.value = extract_val(parser);
-	current_node->data.list_expr.next = amalloc(parser->allocator, sizeof(UcExpr));
-	current_node = current_node->data.list_expr.next;
+	list->data.list_expr[pos] = extract_val(parser);
+
+	if (++pos >= len) {
+	    len *= 2;
+	    list->data.list_expr = arealloc(parser->allocator, list->data.list_expr, len);
+	}
     }
 
-    return head;
+    list->data.list_expr[pos] = NULL;
+    return list;
 }
 
 UcExpr* parse_function_decl(Parser* parser) {
     UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
     expr->active = FunctionDeclExpr;
-    UcArgList* head = amalloc(parser->allocator, sizeof(UcArgList));
-    UcArgList* current_node = head;
+    expr->data.function_decl_expr.args = amalloc(parser->allocator, sizeof(UcArg) * 11);
+    size_t len = 10;
+    size_t pos = 0;
     bool syntaxOk = true;
 
     check_token(parser, get_token(parser->tokenizer), Lexeme, LParen);
@@ -289,7 +305,6 @@ UcExpr* parse_function_decl(Parser* parser) {
 	if (peek_token(parser->tokenizer).active == Lexeme) {
 	    if (peek_token(parser->tokenizer).data.lexeme == RParen) {
 		skip_token(parser->tokenizer);
-		current_node->next = NULL;
 		break;
 	    } else if (peek_token(parser->tokenizer).data.lexeme == Comma) {
 		skip_token(parser->tokenizer);
@@ -304,24 +319,26 @@ UcExpr* parse_function_decl(Parser* parser) {
 	}
 
 	if (!syntaxOk) {
-	    head = NULL;
+	    expr->data.function_decl_expr.args = NULL;
 	    break;
 	}
 	
 	syntaxOk = check_tag(parser, get_token(parser->tokenizer), Ident);
-	current_node->ident = get_current_token(parser->tokenizer).data.ident;
+	expr->data.function_decl_expr.args[pos].ident = get_current_token(parser->tokenizer).data.ident;
 
 	syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, Colon);
 
 	syntaxOk = check_tag(parser, get_token(parser->tokenizer), Lexeme);
-	current_node->type = get_current_token(parser->tokenizer).data.lexeme;
+	expr->data.function_decl_expr.args[pos].type = get_current_token(parser->tokenizer).data.lexeme;
 
-	current_node->next = amalloc(parser->allocator, sizeof(UcArgList));
-	current_node = current_node->next;
+	if (++pos >= len) {
+	    len *= 2;
+	    expr->data.function_decl_expr.args = arealloc(parser->allocator, expr->data.function_decl_expr.args, len);
+	}
     }
 
-    expr->data.function_decl_expr.args = head;
-
+    expr->data.function_decl_expr.args[pos].type = EOS;
+    
     syntaxOk = check_token(parser, get_token(parser->tokenizer), Lexeme, RType);
 
     syntaxOk = check_tag(parser, get_token(parser->tokenizer), Lexeme);
