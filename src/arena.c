@@ -66,6 +66,35 @@ void* acalloc(Arena* arena, size_t size, size_t nmeb) {
     return memory;
 }
 
+void* arealloc(Arena* arena, void* ptr, size_t nmeb) {
+    if (ptr == NULL) {
+	return ptr;
+    }
+
+    BMeta* current = (BMeta*)((unsigned char*)ptr - sizeof(BMeta));
+    assert(current->magic == 0x77);
+
+    if (nmeb == 0) {
+	afree(arena, ptr);
+	return NULL;
+    }
+
+    if (current->next == NULL) {
+	// NOTE(sam): no copy needed in this case, this was the last allocation and can be safely
+	// expanded.
+	current->data_size = nmeb;
+	return ptr;
+    } else {
+	// NOTE(sam): in this case, the allocation was somewhere other than the end.
+	// we allocate a new block of memory of new desired size, and copy over the
+	// old memory to it. the old block is also marked as free for re-use.
+	void* memory = amalloc(arena, nmeb);
+	memcpy(memory, ptr, nmeb);
+	afree(arena, ptr);
+	return memory;
+    }
+}
+
 void afree(Arena* arena, void* ptr) {
     if (ptr == NULL) {
 	return;
