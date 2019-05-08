@@ -49,8 +49,8 @@ void build_symbol_table(Analyzer* analyzer) {
 		analyzer->symbol_table[analyzer->st_pos] = sym;		
 
 		if (++analyzer->st_pos >= analyzer->st_len) {
-		    // TODO(sam): write arealloc
-		    break;
+		    analyzer->st_len *= 2;
+		    analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol) * analyzer->st_len);
 		}
 
 		current_arg = current_arg->next;
@@ -67,8 +67,8 @@ void build_symbol_table(Analyzer* analyzer) {
 		}
 		
 		if (++analyzer->st_pos >= analyzer->st_len) {
-		    // TODO(sam): write arealloc
-		    break;
+		    analyzer->st_len *= 2;
+		    analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol) * analyzer->st_len);
 		}
 
 		current_stmt = current_stmt->data.list_expr.next;
@@ -77,8 +77,8 @@ void build_symbol_table(Analyzer* analyzer) {
 	}
 
 	if (++analyzer->st_pos >= analyzer->st_len) {
-	    // TODO(sam): write arealloc
-	    break;
+	    analyzer->st_len *= 2;
+	    analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol) * analyzer->st_len);
 	}
 
 	expr = get_expr(analyzer->parser);
