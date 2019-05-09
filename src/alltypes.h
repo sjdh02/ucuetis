@@ -158,6 +158,6 @@ struct UcExpr {
 struct Symbol {
     char* ident;
     size_t scope_level;
-    bool isArg;
+    bool is_arg;
     UcExpr* sym_expr;
 };

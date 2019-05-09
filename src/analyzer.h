@@ -17,4 +17,7 @@ typedef struct {
 
 Analyzer* init_analyzer(Parser* parser, Arena* allocator, ErrorStream* estream);
 void analyze(Analyzer* analyzer);
+void analyze_assign_expr(Analyzer* analyzer, UcExpr* expr);
+void push_symbol(Analyzer* analyzer, Symbol symbol);
+void drop_symbol(Analyzer* analyzer);
 void build_symbol_table(Analyzer* analyzer);

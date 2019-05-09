@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ((defn x 200)))", arena, estream);
     Parser* parser = init_parser(tokenizer, arena, estream);
     Analyzer* analyzer = init_analyzer(parser, arena, estream);
-
+    
     analyze(analyzer);
     report_errors(estream);
 
