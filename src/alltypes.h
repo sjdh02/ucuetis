@@ -37,9 +37,9 @@ enum Lexeme {
     Bar, Comma,
     Dot,
 
-    Assign, Pipe,
-    LtOrEq, GtOrEq,
-    Neq, RType,
+    Assign, LtOrEq,
+    GtOrEq, Neq,
+    RType,
 
     Out, In,
     ErrOut, If,
@@ -56,13 +56,12 @@ enum Lexeme {
 };
 
 enum ExprTag {
-    ValueExpr, AssignExpr,
-    ListExpr, BoolExpr,
-    MathExpr, PipeExpr,
-    IfExpr, WhileExpr,
-    ForExpr, YieldExpr,
-    FunctionDeclExpr, FunctionCallExpr,
-    BadExpr,
+    ValueExpr, ListExpr,
+    BoolExpr, AssignExpr,
+    MathExpr, IfExpr,
+    WhileExpr, ForExpr,
+    YieldExpr, FunctionDeclExpr,
+    FunctionCallExpr,
 };
 
 struct BMeta {
@@ -97,15 +96,12 @@ struct UcArg {
     enum Lexeme type;
 };
 
+// TODO(sam): change all ambiguous names to
+// rhs and lhs.
 struct UcExpr {
     enum ExprTag active;    
     union {
 	Value value;
-
-	struct {
-	    UcExpr* ident;
-	    UcExpr* value;
-	} assign_expr;
 
 	UcExpr** list_expr;
 	
@@ -114,16 +110,17 @@ struct UcExpr {
 	    UcExpr* lhs;
 	    UcExpr* rhs;
 	} boolean_expr;
+	
+	struct {
+	    UcExpr* ident;
+	    UcExpr* value;
+	} assign_expr;
 
 	struct {
 	    enum Lexeme op;
 	    UcExpr* lhs;
 	    UcExpr* rhs;
 	} math_expr;
-	struct {
-	    UcExpr* dest;
-	    UcExpr* source;
-	} pipe_expr;
 
 	struct {
 	    UcExpr* cond;

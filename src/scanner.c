@@ -207,9 +207,7 @@ Token parse_multi(Tokenizer* tokenizer) {
 	    token.data.lexeme = Bang;
 	break;
     case '<':
-	if (next == '>')
-	    token.data.lexeme = Pipe;
-	else if (next =='=')
+	if (next =='=')
 	    token.data.lexeme = LtOrEq;
 	else
 	    token.data.lexeme = Lt;
