@@ -25,7 +25,9 @@ void analyze_math_expr(Analyzer* analyzer, UcExpr* expr);
 void analyze_if_expr(Analyzer* analyzer, UcExpr* expr);
 void analyze_while_expr(Analyzer* analyzer, UcExpr* expr);
 void analyze_for_expr(Analyzer* analyzer, UcExpr* expr);
-
+void analyze_yield_expr(Analyzer* analyzer, UcExpr* expr);
+void analyze_function_decl(Analyzer* analyzer, UcExpr* expr);
+void analyze_function_call(Analyzer* analyzer, UcExpr* expr);
 
 int find_symbol(Analyzer* analyzer, char* needle);
 void push_symbol(Analyzer* analyzer, Symbol symbol);

@@ -51,6 +51,8 @@ void analyze_expr(Analyzer* analyzer, UcExpr* expr) {
         
         case ForExpr: analyze_for_expr(analyzer, expr); break;
         
+        case YieldExpr: analyze_yield_expr(analyzer, expr); break;
+        
         case FunctionCallExpr: break;
         
         default: assert(0);
@@ -143,6 +145,38 @@ void analyze_for_expr(Analyzer* analyzer, UcExpr* expr) {
     while (*stmts_arr) {
         analyze_expr(analyzer, *stmts_arr);
         ++stmts_arr;
+    }
+}
+
+void analyze_yield_expr(Analyzer* analyzer, UcExpr* expr) {
+    switch (expr->active) {
+        case AssignExpr:
+        case IfExpr:
+        case WhileExpr:
+        case ForExpr:
+        case YieldExpr:
+        case FunctionDeclExpr: {
+            assert(0); // these expression types are not allowed for yield expressions
+        }
+        
+        default: break;
+    }
+}
+
+void analyze_function_decl(Analyzer* analyzer, UcExpr* expr) {
+    
+}
+
+void analyze_function_call(Analyzer* analyzer, UcExpr* expr) {
+    UcExpr** args_arr = expr->data.function_call_expr.args->data.list_expr;
+    
+    if (find_symbol(analyzer, expr->data.function_call_expr.ident) == -1) {
+        assert(0); // couldnt find function name
+    }
+    
+    while (*args_arr) {
+        analyze_expr(analyzer, *args_arr);
+        ++args_arr;
     }
 }
 

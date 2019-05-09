@@ -118,27 +118,27 @@ UcExpr* extract_val(Parser* parser) {
     switch (token.active) {
         case NumLit: {
             Value num = {
-		.active = NumLit,
-		.data.num_lit = token.data.num_lit,
-	    };
+                .active = NumLit,
+                .data.num_lit = token.data.num_lit,
+            };
             expr->data.value = num;
             break;
         }
         
         case Ident: {
             Value ident = {
-		.active = Ident,
-		.data.ident = token.data.ident,
-	    };
+                .active = Ident,
+                .data.ident = token.data.ident,
+            };
             expr->data.value = ident;
             break;
         }
         
         case StrLit: {
             Value str = {
-		.active = StrLit,
-		.data.str_lit = token.data.str_lit,
-	    };
+                .active = StrLit,
+                .data.str_lit = token.data.str_lit,
+            };
             expr->data.value = str;
             break;
         }
@@ -152,9 +152,9 @@ UcExpr* extract_val(Parser* parser) {
                 case False:
                 case It: {
                     Value builtin = {
-			.active = Lexeme,
-			.data.builtin = token.data.lexeme,
-		    };
+                        .active = Lexeme,
+                        .data.builtin = token.data.lexeme,
+                    };
                     expr->data.value = builtin;
                     break;
                 }
@@ -175,19 +175,19 @@ UcExpr* extract_val(Parser* parser) {
                     break;
                 }
                 
-	        case Lt:
+                case Lt:
                 case Gt:
                 case Eq:
                 case Neq:
                 case LtOrEq:
                 case GtOrEq: {
-		    step_back(parser->tokenizer);
-		    afree(parser->allocator, expr);
-		    expr = get_expr(parser);
+                    step_back(parser->tokenizer);
+                    afree(parser->allocator, expr);
+                    expr = get_expr(parser);
                     break;
                 }
                 
-
+                
                 case Fn: {
                     afree(parser->allocator, expr);
                     expr = parse_function_decl(parser);
@@ -202,7 +202,7 @@ UcExpr* extract_val(Parser* parser) {
         
         default: assert(false);
     }
-
+    
     return expr;
 }
 
