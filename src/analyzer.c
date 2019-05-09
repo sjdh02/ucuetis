@@ -30,10 +30,33 @@ void analyze_expr(Analyzer* analyzer, UcExpr* expr) {
     switch (expr->active) {
         case ValueExpr: {
             if (expr->data.value.active == Ident) {
-                if (find_symbol(analyzer, expr->data.value.data.ident) == -1) {
+                if (find_symbol(analyzer, expr->data.value.data.ident, analyzer->scope_level) == -1) {
                     assert(0); // error here about unknown symbol
                 }
             }
+            break;
+        }
+        
+        case ListExpr: {
+            UcExpr** list = expr->data.list_expr;
+            size_t type;
+            if ((*list)->active == ValueExpr) {
+                type = (*list)->data.value.active;
+                
+                while (list) {
+                    assert((*list)->active == ValueExpr);
+                    assert((*list)->data.value.active == type);
+                    ++list;
+                }
+            } else {
+                type = (*list)->active;
+                
+                while (list) {
+                    assert((*list)->active == type);
+                    ++list;
+                }
+            }
+            
             break;
         }
         
@@ -49,13 +72,18 @@ void analyze_expr(Analyzer* analyzer, UcExpr* expr) {
         
         case IfExpr: analyze_if_expr(analyzer, expr); break;
         
+        case WhileExpr: analyze_while_expr(analyzer, expr); break;
+        
         case ForExpr: analyze_for_expr(analyzer, expr); break;
         
         case YieldExpr: analyze_yield_expr(analyzer, expr); break;
         
-        case FunctionCallExpr: break;
+        case FunctionCallExpr: analyze_function_call(analyzer, expr); break;
         
-        default: assert(0);
+        default: {
+            printf("%d\n", expr->active);
+            assert(0);
+        }
     }
 }
 
@@ -117,20 +145,24 @@ void analyze_if_expr(Analyzer* analyzer, UcExpr* expr) {
     UcExpr** stmts_arr = expr->data.if_expr.stmts->data.list_expr;
     
     analyze_expr(analyzer, expr->data.if_expr.cond);
+    ++analyzer->scope_level;
     while (*stmts_arr) {
         analyze_expr(analyzer, *stmts_arr);
         ++stmts_arr;
     }
+    --analyzer->scope_level;
 }
 
 void analyze_while_expr(Analyzer* analyzer, UcExpr* expr) {
     UcExpr** stmts_arr = expr->data.while_expr.stmts->data.list_expr;
     
     analyze_expr(analyzer, expr->data.while_expr.cond);
+    ++analyzer->scope_level;
     while (*stmts_arr) {
         analyze_expr(analyzer, *stmts_arr);
         ++stmts_arr;
     }
+    --analyzer->scope_level;
 }
 
 void analyze_for_expr(Analyzer* analyzer, UcExpr* expr) {
@@ -142,10 +174,12 @@ void analyze_for_expr(Analyzer* analyzer, UcExpr* expr) {
     }
     
     analyze_expr(analyzer, expr->data.for_expr.target);
+    ++analyzer->scope_level;
     while (*stmts_arr) {
         analyze_expr(analyzer, *stmts_arr);
         ++stmts_arr;
     }
+    --analyzer->scope_level;
 }
 
 void analyze_yield_expr(Analyzer* analyzer, UcExpr* expr) {
@@ -170,7 +204,7 @@ void analyze_function_decl(Analyzer* analyzer, UcExpr* expr) {
 void analyze_function_call(Analyzer* analyzer, UcExpr* expr) {
     UcExpr** args_arr = expr->data.function_call_expr.args->data.list_expr;
     
-    if (find_symbol(analyzer, expr->data.function_call_expr.ident) == -1) {
+    if (find_symbol(analyzer, expr->data.function_call_expr.ident, analyzer->scope_level) == -1) {
         assert(0); // couldnt find function name
     }
     
@@ -180,9 +214,10 @@ void analyze_function_call(Analyzer* analyzer, UcExpr* expr) {
     }
 }
 
-int find_symbol(Analyzer* analyzer, char* needle) {
+int find_symbol(Analyzer* analyzer, char* needle, size_t scope_level) {
     for (int i = 0; i < analyzer->st_pos; i++) {
-        if (strcmp(analyzer->symbol_table[i].ident, needle) == 0)
+        if (strcmp(analyzer->symbol_table[i].ident, needle) == 0
+            && analyzer->symbol_table[i].scope_level <= scope_level)
             return i;
     }
     return -1;

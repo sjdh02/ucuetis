@@ -29,7 +29,7 @@ void analyze_yield_expr(Analyzer* analyzer, UcExpr* expr);
 void analyze_function_decl(Analyzer* analyzer, UcExpr* expr);
 void analyze_function_call(Analyzer* analyzer, UcExpr* expr);
 
-int find_symbol(Analyzer* analyzer, char* needle);
+int find_symbol(Analyzer* analyzer, char* needle, size_t scope_level);
 void push_symbol(Analyzer* analyzer, Symbol symbol);
 void drop_symbol(Analyzer* analyzer);
 void build_symbol_table(Analyzer* analyzer);

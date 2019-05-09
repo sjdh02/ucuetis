@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <stdio.h>
 
 Parser* init_parser(Tokenizer* tokenizer, Arena* allocator, ErrorStream* estream) {
     Parser* parser = amalloc(allocator, sizeof(Parser));
@@ -91,17 +92,29 @@ UcExpr* get_expr(Parser* parser) {
         }
         
         case Ident: {
-            if (get_token(parser->tokenizer).active == Lexeme
-                && get_current_token(parser->tokenizer).data.lexeme == LBracket) {
+            if (peek_token(parser->tokenizer).active == Lexeme
+                && peek_token(parser->tokenizer).data.lexeme == LBracket) {
+                skip_token(parser->tokenizer);
                 expr->active = FunctionCallExpr;
                 expr->data.function_call_expr.ident = token.data.ident;
                 expr->data.function_call_expr.args = parse_function_call(parser);
-                break;
+            } else {
+                step_back(parser->tokenizer);
+                afree(parser->allocator, expr);
+                expr = extract_val(parser);
             }
+            
+            break;
         }
         
         case NumLit:
-        case StrLit:
+        case StrLit: {
+            step_back(parser->tokenizer);
+            afree(parser->allocator, expr);
+            expr = extract_val(parser);
+            break;
+        }
+        
         default: push_error(parser->estream, UnexpectedToken, "parser/get_expr", get_pos(parser->tokenizer)); break;
     }
     

@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
     // NOTE(sam): This is handing out two pointers to the error stream, to both the tokenizer and parser.
     // This should be fine for single-threaded code, but if multithreading is added, push_error and pop_error
     // would need to be mutexed.
-    //    Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ((defn x 200)))", arena, estream);
-    Tokenizer* tokenizer = init_tokenizer("(for (< 2 300) (+ x 200))", arena, estream);
+    // Tokenizer* tokenizer = init_tokenizer("(defn testFn fn(a: num, b: num) => num ((defn x 200)))", arena, estream);
+    Tokenizer* tokenizer = init_tokenizer("(defn y 200) (if (y) (defn x 20)) (for (x) (+ x 200))", arena, estream);
     
     Parser* parser = init_parser(tokenizer, arena, estream);
     Analyzer* analyzer = init_analyzer(parser, arena, estream);
