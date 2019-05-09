@@ -49,6 +49,8 @@ void analyze_expr(Analyzer* analyzer, UcExpr* expr) {
         
         case IfExpr: analyze_if_expr(analyzer, expr); break;
         
+        case ForExpr: analyze_for_expr(analyzer, expr); break;
+        
         case FunctionCallExpr: break;
         
         default: assert(0);
@@ -113,6 +115,31 @@ void analyze_if_expr(Analyzer* analyzer, UcExpr* expr) {
     UcExpr** stmts_arr = expr->data.if_expr.stmts->data.list_expr;
     
     analyze_expr(analyzer, expr->data.if_expr.cond);
+    while (*stmts_arr) {
+        analyze_expr(analyzer, *stmts_arr);
+        ++stmts_arr;
+    }
+}
+
+void analyze_while_expr(Analyzer* analyzer, UcExpr* expr) {
+    UcExpr** stmts_arr = expr->data.while_expr.stmts->data.list_expr;
+    
+    analyze_expr(analyzer, expr->data.while_expr.cond);
+    while (*stmts_arr) {
+        analyze_expr(analyzer, *stmts_arr);
+        ++stmts_arr;
+    }
+}
+
+void analyze_for_expr(Analyzer* analyzer, UcExpr* expr) {
+    UcExpr** stmts_arr = expr->data.for_expr.stmts->data.list_expr;
+    
+    if (expr->data.for_expr.target->active != ValueExpr ||
+        expr->data.for_expr.target->data.value.active != Ident) {
+        assert(0); // error about invalid target for for expression
+    }
+    
+    analyze_expr(analyzer, expr->data.for_expr.target);
     while (*stmts_arr) {
         analyze_expr(analyzer, *stmts_arr);
         ++stmts_arr;

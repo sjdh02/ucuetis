@@ -112,7 +112,7 @@ UcExpr* get_expr(Parser* parser) {
 
 UcExpr* extract_val(Parser* parser) {
     UcExpr* expr = amalloc(parser->allocator, sizeof(UcExpr));
-    expr->active = ValueExpr;    
+    expr->active = ValueExpr;
     Token token = get_token(parser->tokenizer);
     
     switch (token.active) {
@@ -177,7 +177,7 @@ UcExpr* extract_val(Parser* parser) {
                     break;
                 }
                 
-                default: assert(false);
+                default: assert(false); // this should push an error!
             }
             
             break;
