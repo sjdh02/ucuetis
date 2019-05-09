@@ -61,7 +61,7 @@ void analyze_assign_expr(Analyzer* analyzer, UcExpr* expr) {
     if (expr->data.assign_expr.ident->active != ValueExpr ||
         expr->data.assign_expr.ident->data.value.active != Ident) {
         // push error about invalid lhs
-        assert(0);
+        assert(0);	
     }
     
     analyze_expr(analyzer, expr->data.assign_expr.value);
