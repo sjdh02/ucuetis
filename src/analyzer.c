@@ -224,12 +224,19 @@ int find_symbol(Analyzer* analyzer, char* needle, size_t scope_level) {
 }
 
 void push_symbol(Analyzer* analyzer, Symbol symbol) {
-    analyzer->symbol_table[analyzer->st_pos] = symbol;
-    if (++analyzer->st_pos >= analyzer->st_len) {
-        analyzer->st_len *= 2;
-        analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol)* analyzer->st_len);
+    int pos = find_symbol(analyzer, symbol.ident, analyzer->scope_level);
+    
+    if (pos == -1) {
+        analyzer->symbol_table[analyzer->st_pos] = symbol;
+        if (++analyzer->st_pos >= analyzer->st_len) {
+            analyzer->st_len *= 2;
+            analyzer->symbol_table = arealloc(analyzer->allocator, analyzer->symbol_table, sizeof(Symbol)* analyzer->st_len);
+        }
+    } else {
+        analyzer->symbol_table[pos] = symbol;
     }
 }
+
 
 void drop_expr(Analyzer* analyzer) {
     if (analyzer->st_pos == 0)
